@@ -1,0 +1,303 @@
+//
+//  OrderViewController.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/8.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "OrderViewController.h"
+#import "AddressCell.h"
+
+@interface OrderViewController ()<UITableViewDelegate, UITableViewDataSource>
+{
+    int flagArr[2];
+    int addrSelArr[999];
+}
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (weak, nonatomic) IBOutlet UIButton *messageButton;
+@property (weak, nonatomic) IBOutlet UIButton *certainButton;
+@property (weak, nonatomic) IBOutlet UIView *titleView;
+
+@property (strong, nonatomic) UIView *choosenDateView;
+@property (strong, nonatomic) UILabel *choosenDateLabel;
+@property (strong, nonatomic) UIButton *choosenDateButton;
+
+@property (strong, nonatomic) UIView *choosenAddrView;
+@property (strong, nonatomic) UILabel *choosenAddrLabel;
+@property (strong, nonatomic) UIButton *choosenAddrButton;
+
+
+- (IBAction)messageButtonClicked:(id)sender;
+@end
+
+@implementation OrderViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    [self setupWidget];
+    flagArr[0] = 1;
+    flagArr[1] = 1;
+    memset(&addrSelArr, 0, 999);
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - UITableViewDelegate, UITableViewDataSource
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [tableView deselectRowAtIndexPath:indexPath animated:NO];
+    if (indexPath.section == 1) {
+        memset(&addrSelArr, 0, 999);
+        addrSelArr[indexPath.row] = 1;
+        [tableView reloadData];
+        self.choosenAddrLabel.text = @"上海市浦东新区金桥公安局";
+    }
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 2;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    if (section == 0) {
+        if (flagArr[section] > 0) {
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+    if (section == 1 ) {
+        if (flagArr[section] > 0) {
+            return 10;
+        }else{
+            return 0;
+        }
+    }
+    return 0;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *cellIdentifier = @"fasf";
+    static NSString *addrCellIdentifier = @"addressCellIdentifier";
+    
+    if (indexPath.section == 0) {
+        UITableViewCell *cell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellIdentifier];
+        cell.textLabel.text = @"fasfasfwef";
+        return cell;
+    }
+    
+    AddressCell *addCell = [tableView dequeueReusableCellWithIdentifier:addrCellIdentifier];
+    if (addCell == nil) {
+        addCell  = [[[NSBundle mainBundle] loadNibNamed:@"AddressCell" owner:self options:nil] lastObject];
+    }
+    addCell.addressLabel.text = @"上海市浦东新区金桥公安局";
+    if (addrSelArr[indexPath.row] == 1) {
+        addCell.chooseButton.selected = YES;
+    }else{
+        addCell.chooseButton.selected = NO;
+    }
+    return addCell;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.section == 0) {
+        if (flagArr[indexPath.section] <= 0) {
+            return 0;
+        }
+        return 362 * Screen_Width / 375.0;
+    }
+    if (flagArr[indexPath.section] <= 0) {
+        return  0;
+    }
+    return 58.0;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+{
+    
+    if (section == 0) {
+        return self.choosenDateView;
+    }
+    return self.choosenAddrView;
+    
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+{
+    return 60;
+}
+
+#pragma mark - override
+- (UIColor *)navigaitonBarBackgroundColor
+{
+    return [UIColor whiteColor];
+}
+
+#pragma mark  - private
+- (void)setupWidget
+{
+    [self.certainButton setBackgroundImage:[UIImage imageWithColor:[[UIColor colorWithHex:0x3A4B76] colorWithAlphaComponent:0.1] size:CGSizeMake(Screen_Width, 100)] forState:UIControlStateDisabled];
+    [self.certainButton setBackgroundImage:[UIImage imageWithColor:[UIColor colorWithHex:0x3A4B76] size:CGSizeMake(Screen_Width, 100)] forState:UIControlStateNormal];
+    [self.certainButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    
+    UIView *view = [[UIView alloc]initWithFrame:CGRectMake(0, 0, Screen_Width, 10)];
+    view.backgroundColor = RGB(243, 243, 247);
+    self.tableView.tableHeaderView = view;
+    
+    
+    
+}
+
+#pragma mark - button action
+
+- (IBAction)messageButtonClicked:(id)sender {
+    
+}
+
+- (void)dateChoosenButtonClicked:(UIButton*)button
+{
+    DDLog(@"%p",button);
+    if (CGAffineTransformIsIdentity(self.choosenDateButton.transform) == NO) {
+        //是否已经旋转过了，如果旋转过了，说明需要变回展开
+        flagArr[0] = 1;
+        self.choosenDateButton.transform = CGAffineTransformIdentity;
+    }else{
+        //如果没有，说明需要收回
+        flagArr[0] = -1;
+        self.choosenDateButton.transform = CGAffineTransformMakeRotation(M_PI);
+        
+    }
+    [self.tableView reloadData];
+}
+
+- (void)addressChoosenButtonClicked:(UIButton*)button
+{
+    if (CGAffineTransformIsIdentity(self.choosenAddrButton.transform) == NO) {
+        //是否已经旋转过了，如果旋转过了，说明需要变回展开
+        flagArr[1] = 1;
+        self.choosenAddrButton.transform = CGAffineTransformIdentity;
+    }else{
+        //如果没有，说明需要收回
+        flagArr[1] = -1;
+        self.choosenAddrButton.transform = CGAffineTransformMakeRotation(M_PI);
+        
+    }
+    [self.tableView reloadData];
+//    self.choosenAddrButton.highlighted = !self.choosenAddrButton.highlighted;
+//    if (self.choosenAddrButton.highlighted) {
+//        self.choosenAddrButton.transform = CGAffineTransformMakeRotation(M_PI);
+//        flagArr[1] = -1;
+//    }else{
+//        flagArr[1] = 1;
+//        self.choosenAddrButton.transform = CGAffineTransformIdentity;
+//    }
+//    [self.tableView reloadData];
+}
+
+#pragma mark - getter
+
+- (UIView *)choosenAddrView
+{
+    if (_choosenAddrView == nil) {
+        UIView *view = [[UIView alloc]initWithFrame:CGRectMake(0, 0, Screen_Width, 60)];
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+        [button setFrame:CGRectMake(0, 0, 35, view.height)];
+        [button setImage:[UIImage imageNamed:@"address"] forState:UIControlStateNormal];
+        button.userInteractionEnabled = NO;
+        [view addSubview:button];
+        
+        UILabel *label = [[UILabel alloc]initWithFrame:CGRectMake(button.maxX, 0, 84, view.height)];
+        label.font = [UIFont systemFontOfSize:14];
+        label.textColor  = [[UIColor blackColor] colorWithAlphaComponent:0.8];
+        label.text = @"请选择办理处";
+        [view addSubview:label];
+        
+        UIButton *leftButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        leftButton.frame = CGRectMake(view.width - 35, 0, 35, view.height);
+        [leftButton setImage:[UIImage imageNamed:@"drop_down"] forState:UIControlStateNormal];
+        [view addSubview:leftButton];
+        [leftButton addTarget:self action:@selector(addressChoosenButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+        self.choosenAddrButton = leftButton;
+        if (flagArr[1] < 1) {
+            leftButton.transform = CGAffineTransformMakeRotation(M_PI);
+        }
+        
+        UILabel *choosenLabel = [[UILabel alloc]initWithFrame:CGRectMake(label.maxX + 5, 0, leftButton.x - label.maxX, view.height)];
+        choosenLabel.textAlignment = NSTextAlignmentRight;
+
+        choosenLabel.textColor = [[UIColor blackColor] colorWithAlphaComponent:0.6];
+        choosenLabel.font = [UIFont systemFontOfSize:14];
+        [view addSubview:choosenLabel];
+        self.choosenAddrLabel = choosenLabel;
+        
+        UIView *line = [[UIView alloc]initWithFrame:CGRectMake(0, view.height - 1, view.width, 1)];
+        line.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.2];
+        [view addSubview:line];
+        
+        UIView *line2 = [[UIView alloc]initWithFrame:CGRectMake(0, 0, view.width, 1)];
+        line2.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.2];
+        [view addSubview:line2];
+        
+        _choosenAddrView = view;
+    }
+    return _choosenAddrView;
+}
+
+- (UIView *)choosenDateView
+{
+    if (_choosenDateView == nil) {
+        UIView *view = [[UIView alloc]initWithFrame:CGRectMake(0, 0, Screen_Width, 60)];
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+        [button setFrame:CGRectMake(0, 0, 35, view.height)];
+        [button setImage:[UIImage imageNamed:@"calandar"] forState:UIControlStateNormal];
+        button.userInteractionEnabled = NO;
+        [view addSubview:button];
+        
+        UILabel *label = [[UILabel alloc]initWithFrame:CGRectMake(button.maxX, 0, 84, view.height)];
+        label.font = [UIFont systemFontOfSize:14];
+        label.textColor  = [[UIColor blackColor] colorWithAlphaComponent:0.8];
+        label.text = @"选择办理日期";
+        [view addSubview:label];
+        
+        UIButton *leftButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        leftButton.frame = CGRectMake(view.width - 35, 0, 35, view.height);
+        [leftButton setImage:[UIImage imageNamed:@"drop_down"] forState:UIControlStateNormal];
+        [view addSubview:leftButton];
+        [leftButton addTarget:self action:@selector(dateChoosenButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+        self.choosenDateButton = leftButton;
+        if (flagArr[0] < 1) {
+            leftButton.transform = CGAffineTransformMakeRotation(M_PI);
+        }
+        
+        UILabel *choosenLabel = [[UILabel alloc]initWithFrame:CGRectMake(label.maxX + 5, 0, leftButton.x - label.maxX, view.height)];
+        choosenLabel.textAlignment = NSTextAlignmentRight;
+        choosenLabel.textColor = [[UIColor blackColor] colorWithAlphaComponent:0.6];
+        choosenLabel.font = [UIFont systemFontOfSize:14];
+        [view addSubview:choosenLabel];
+        self.choosenDateLabel = choosenLabel;
+        
+        UIView *line = [[UIView alloc]initWithFrame:CGRectMake(0, view.height - 1, view.width, 1)];
+        line.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.2];
+        [view addSubview:line];
+        
+        UIView *line2 = [[UIView alloc]initWithFrame:CGRectMake(0, 0, view.width, 1)];
+        line2.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.2];
+        [view addSubview:line2];
+        
+        _choosenDateView = view;
+    }
+    return _choosenDateView;
+}
+
+@end

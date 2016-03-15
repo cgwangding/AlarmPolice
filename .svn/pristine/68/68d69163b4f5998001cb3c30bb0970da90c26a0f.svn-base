@@ -1,0 +1,272 @@
+//
+//  PersonalInfoTableViewController.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/21.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "PersonalInfoTableViewController.h"
+#import "PersonalInfoChangeViewController.h"
+
+@interface PersonalInfoTableViewController ()<UIImagePickerControllerDelegate>
+@property (weak, nonatomic) IBOutlet UIButton *headerButton;
+@property (weak, nonatomic) IBOutlet UILabel *nameLabel;
+@property (weak, nonatomic) IBOutlet UILabel *sexLabel;
+@property (weak, nonatomic) IBOutlet UILabel *phoneNumLabel;
+@property (weak, nonatomic) IBOutlet UILabel *personalIdLabel;
+@property (weak, nonatomic) IBOutlet UILabel *addressLabel;
+
+
+- (IBAction)headerButtonClicked:(id)sender;
+
+@end
+
+@implementation PersonalInfoTableViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.title = @"个人信息";
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    self.leftBarButtonItem.image = [[UIImage imageNamed:@"back"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    self.leftBarButtonItem.tintColor = [UIColor colorWithHex:0x3A4B76];
+    
+    self.headerButton.cornerRadius = 22;
+    
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear: animated];
+    [self personalInfo];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+{
+    if ([segue.identifier isEqualToString:@"nameIdnetifier"]) {
+        //姓名
+        PersonalInfoChangeViewController *infoVC = segue.destinationViewController;
+        infoVC.infoType = PersonalInfoTypeName;
+        infoVC.infoStr = self.nameLabel.text;
+    }
+    if ([segue.identifier isEqualToString:@"sexIdentifier"]) {
+        //性别
+        PersonalInfoChangeViewController *infoVC = segue.destinationViewController;
+        infoVC.infoType = PersonalInfoTypeSex;
+        infoVC.infoStr = self.sexLabel.text;
+    }
+    if ([segue.identifier isEqualToString:@"idCardNumIdnetifier"]) {
+        //身份证
+        PersonalInfoChangeViewController *infoVC = segue.destinationViewController;
+        infoVC.infoType = PersonalInfoTypeIDCardNum;
+        infoVC.infoStr = self.personalIdLabel.text;
+    }
+}
+
+- (UIColor *)navigaitonBarBackgroundColor
+{
+    return [UIColor whiteColor];
+}
+
+- (NSDictionary *)navigationBarTitleTextAttribute
+{
+        return @{NSForegroundColorAttributeName:[UIColor colorWithHex:0x3A4B76],NSFontAttributeName:[UIFont systemFontOfSize:18]};
+}
+
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    
+    return 2;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if (section == 0) {
+        return 6;
+    }
+    return 1;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+{
+    return 30;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+{
+    UIView *view = [[UIView alloc]initWithFrame:CGRectMake(0, 0, Screen_Width, 30)];
+    view.backgroundColor = RGB(242, 243, 247);
+    UILabel *label = [[UILabel alloc]initWithFrame:CGRectMake(12, 0, 200, view.height)];
+    label.font = [UIFont systemFontOfSize:12];
+    label.textColor = [UIColor colorWithHex:0x3A4B76];
+    if (section == 0) {
+        label.text = @"基本信息";
+    }else{
+        label.text = @"安全设置";
+    }
+    [view addSubview:label];
+    
+    return view;
+}
+
+#pragma mark - UIImagePickerControllerDelegate
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
+{
+
+    UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
+    [picker dismissViewControllerAnimated:NO completion:^{
+            [self imageSendWithImages:@[image]];
+    }];
+
+}
+
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
+{
+    [picker dismissViewControllerAnimated:YES completion:nil];
+}
+
+
+#pragma mark - HTTP
+
+- (void)personalInfo
+{
+    NSDictionary *params = @{@"tokenID":UUID};
+    __weak typeof(self) weakSelf = self;
+    [self.view showWithStatus:@"加载中……"];
+    [APIManager personalInfoWithParams:params success:^(NSDictionary *dict) {
+        __weak typeof(self) strongSelf = weakSelf;
+        [strongSelf.view hudHide];
+        //        strongSelf.view showWithMessage:@""
+        [[APUserData sharedUserData]configData:dict[@"Data"][@"model"]];
+        [self updatePersonalInfo];
+        
+    } dataError:^(NSInteger code, NSString *message) {
+        __weak typeof(self) strongSelf = weakSelf;
+        [strongSelf.view hudHide];
+        [strongSelf.view showWithMessage:message];
+    } failure:^(NSError *error) {
+        __weak typeof(self) strongSelf = weakSelf;
+        [strongSelf.view hudHide];
+        APShowServiceError;
+    }];
+}
+
+/**
+ *  上传图片
+ *
+ *  @param images 图片数组
+ */
+- (void)imageSendWithImages:(NSArray<UIImage*>*)images
+{
+    [self.view showWithStatus:@"发送中……"];
+    __weak typeof(self) weakSelf = self;
+    [APIManager uploadImageFileWithBlock:^(id<AFMultipartFormData> formData) {
+        NSDateFormatter *formatter = [[NSDateFormatter alloc]init];
+        formatter.dateFormat = @"yyyyMMddHHmmss";
+        NSString *str = [formatter stringFromDate:[NSDate date]];
+        
+        for (int i = 0; i < images.count; i++) {
+            NSString *fileName = [NSString stringWithFormat:@"%@.jpg",[str stringByAppendingString:[NSString stringWithFormat:@"%d",i]]];
+            [formData appendPartWithFileData:UIImageJPEGRepresentation(images[i], 0.1) name:[NSString stringWithFormat:@"file%d",i] fileName:fileName mimeType:@"image/jpeg" ];
+        }
+    } success:^(id responseObj) {
+        __strong typeof(self) strongSelf = weakSelf;
+        
+        NSDictionary *dict = [responseObj objectFromJSONData];
+        DDLog(@"%@",dict);
+        DDLog(@"%@",dict);
+        if (dict != nil) {
+            if ([dict[@"Code"] integerValue] == 200) {
+                NSString *filePath = dict[@"Data"][@"filePath"];
+                [self modifyHeaderImageWithImagePath:filePath];
+                
+            }else{
+                [strongSelf.view.window hudHide];
+                [strongSelf.view showWithMessage:dict[@"Msg"]];
+            }
+        }else{
+            [strongSelf.view.window hudHide];
+            [strongSelf.view showWithMessage:@"图片发送失败"];
+        }
+    } failure:^(NSError *error) {
+        __strong typeof(self) strongSelf = weakSelf;
+        [strongSelf.view.window hudHide];
+        [strongSelf.view showWithMessage:@"服务器不给力,请稍后重试~~"];
+    }];
+}
+
+- (void)modifyHeaderImageWithImagePath:(NSString*)imagePath
+{
+    NSDictionary *params = @{@"headImg":imagePath,@"tokenID":UUID};
+    __weak typeof(self) weakSelf = self;
+    [APIManager modifyUserHeaderWithParams:params success:^(NSDictionary *dict) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        [strongSelf.view showWithMessage:@"修改成功"];
+        [self personalInfo];
+    } dataError:^(NSInteger code, NSString *message) {
+        __strong typeof(self) strongSelf = weakSelf;
+         [strongSelf.headerButton sd_setBackgroundImageWithURL:[NSURL URLWithString:@""] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"header_default_upload"]];
+        APHide;
+        [strongSelf.view showWithMessage:message];
+    } failure:^(NSError *error) {
+        __strong typeof(self) strongSelf = weakSelf;
+         [strongSelf.headerButton sd_setBackgroundImageWithURL:[NSURL URLWithString:@""] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"header_default_upload"]];
+        APHide;
+        APShowServiceError;
+    }];
+}
+
+#pragma mark - private 
+
+- (void)updatePersonalInfo
+{
+    APUserData *data = [APUserData sharedUserData];
+    self.nameLabel.text = data.realName;
+    
+    NSString *sexStr = data.sex;
+    if ([sexStr isEqualToString:@"female"]) {
+        sexStr = @"女";
+    }else{
+       sexStr = @"男";
+    }
+    self.sexLabel.text = sexStr;
+    self.phoneNumLabel.text = [self formatPhoneNum:data.telephone];
+    self.personalIdLabel.text = [self formatCardId:data.idCard];
+    self.addressLabel.text = data.address;
+    NSString *headerURL = [data.headerURL  stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@","]];
+    [self.headerButton sd_setBackgroundImageWithURL:[NSURL URLWithString:headerURL] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"header_default_upload"]];
+}
+
+#pragma mark - helper
+
+- (NSString*)formatPhoneNum:(NSString*)phoneNum
+{
+    if ([phoneNum rangeOfString:@"*"].location != NSNotFound) {
+        return phoneNum;
+    }
+    NSString *str = [phoneNum stringByReplacingCharactersInRange:NSMakeRange(3, 4) withString:@"****"];
+    return str;
+}
+
+- (NSString *)formatCardId:(NSString*)cardID
+{
+    if ([cardID rangeOfString:@"*"].location != NSNotFound) {
+        return cardID;
+    }
+    NSString *str = [cardID stringByReplacingCharactersInRange:NSMakeRange(6, 8) withString:@"********"];
+    return str;
+}
+
+#pragma mark - button action
+
+- (IBAction)headerButtonClicked:(id)sender {
+    [UIImage imageChooseWithController:self];
+}
+@end

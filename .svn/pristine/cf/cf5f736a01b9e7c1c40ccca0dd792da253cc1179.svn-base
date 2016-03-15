@@ -1,0 +1,83 @@
+
+//
+//  AlarmQuickView.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/11.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "AlarmQuickView.h"
+
+@interface AlarmQuickView ()
+
+@property (strong, nonatomic) UIImageView *alarmImgView;
+
+@property (strong, nonatomic) UIImageView *alarmQuicklyImgView;
+
+@property (assign, nonatomic) CGRect orginalRect;
+@property (assign, nonatomic) CGPoint prePoint;
+@property (assign, nonatomic) CGPoint nextPoint;
+
+@end
+
+@implementation AlarmQuickView
+
+- (void)awakeFromNib
+{
+    self.alarmImgView = self.subviews[2];
+    self.orginalRect = self.alarmImgView.frame;
+    self.alarmQuicklyImgView = self.subviews[1];
+}
+
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
+    UITouch *touch = [touches anyObject];
+    CGPoint curPoint = [touch locationInView:self];
+    self.prePoint = curPoint;
+    if (CGRectContainsPoint(self.alarmImgView.frame, curPoint)) {
+        self.alarmImgView.highlighted = YES;
+    }else{
+        self.hidden = YES;
+    }
+    
+}
+
+- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
+    UITouch *touch = [touches anyObject];
+    CGPoint curPoint = [touch locationInView:self];
+    if (self.alarmImgView.highlighted) {
+        //移动的距离
+        CGFloat distance = self.prePoint.y - curPoint.y;
+        self.prePoint = curPoint;
+        
+        CGRect frame = self.alarmImgView.frame;
+        frame.origin.y -= distance;
+        self.alarmImgView.frame = frame;
+    }
+    
+    if (CGRectContainsPoint(self.alarmQuicklyImgView.frame, curPoint)) {
+        //执行一键报警功能
+        DDLog(@"一键报警>>>>>>>>>>>>>>>");
+        self.hidden = YES;
+        
+    }
+    
+}
+
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
+    UITouch *touch = [touches anyObject];
+    CGPoint curPoint = [touch locationInView:self];
+    if (CGRectContainsPoint(self.alarmQuicklyImgView.frame, curPoint) == NO) {
+        //返回原位
+        [UIView animateWithDuration:0.25 animations:^{
+            self.alarmImgView.frame = self.orginalRect;
+        }];
+        
+        
+    }
+}
+
+@end

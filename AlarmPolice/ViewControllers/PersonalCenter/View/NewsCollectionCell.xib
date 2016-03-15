@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="9531" systemVersion="14F1509" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9529"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="newsCellIdentifier" rowHeight="90" id="KGk-i7-Jjw" customClass="NewsCollectionCell">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="90"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="89.5"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="ksd-G3-vHZ">
+                        <rect key="frame" x="12" y="10" width="90" height="69"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="90" id="ieS-Vt-htJ"/>
+                        </constraints>
+                    </imageView>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="日媒：美将不再容忍中国崛起" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="HRM-PC-65V">
+                        <rect key="frame" x="114" y="10" width="194" height="20"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="20" id="EZK-E8-I22"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                        <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="当前但美中争端与热力学变化相似，都存在“临 界点”" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iuy-6f-CvF">
+                        <rect key="frame" x="114" y="39" width="194" height="40"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="0.29999999999999999" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="qyb-Lj-d06">
+                        <rect key="frame" x="12" y="88" width="308" height="1"/>
+                        <color key="backgroundColor" white="0.0" alpha="0.20000000000000001" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="1" id="Oja-E4-cpW"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="iuy-6f-CvF" firstAttribute="top" secondItem="HRM-PC-65V" secondAttribute="bottom" constant="9" id="0cj-ti-bhT"/>
+                    <constraint firstAttribute="trailing" secondItem="HRM-PC-65V" secondAttribute="trailing" constant="12" id="1be-RI-xsc"/>
+                    <constraint firstAttribute="trailing" secondItem="qyb-Lj-d06" secondAttribute="trailing" id="1mx-RO-fGj"/>
+                    <constraint firstAttribute="trailing" secondItem="iuy-6f-CvF" secondAttribute="trailing" constant="12" id="4bx-MC-Sg6"/>
+                    <constraint firstItem="HRM-PC-65V" firstAttribute="leading" secondItem="ksd-G3-vHZ" secondAttribute="trailing" constant="12" id="4ge-wq-8pH"/>
+                    <constraint firstItem="iuy-6f-CvF" firstAttribute="leading" secondItem="ksd-G3-vHZ" secondAttribute="trailing" constant="12" id="N11-Eb-Zbt"/>
+                    <constraint firstAttribute="bottom" secondItem="iuy-6f-CvF" secondAttribute="bottom" constant="10" id="RUf-Mv-RTc"/>
+                    <constraint firstAttribute="bottom" secondItem="qyb-Lj-d06" secondAttribute="bottom" id="RbI-oH-n11"/>
+                    <constraint firstAttribute="bottom" secondItem="ksd-G3-vHZ" secondAttribute="bottom" constant="10" id="aun-f8-1g1"/>
+                    <constraint firstItem="ksd-G3-vHZ" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="10" id="oBP-cr-xyw"/>
+                    <constraint firstItem="ksd-G3-vHZ" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="12" id="oXx-cB-27H"/>
+                    <constraint firstItem="qyb-Lj-d06" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="12" id="qF2-lt-02w"/>
+                    <constraint firstItem="HRM-PC-65V" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="10" id="tTV-vX-kVc"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections>
+                <outlet property="newsDetailLabel" destination="iuy-6f-CvF" id="Jps-Df-o7q"/>
+                <outlet property="newsImgView" destination="ksd-G3-vHZ" id="ul5-iX-3DB"/>
+                <outlet property="newsTitleLabel" destination="HRM-PC-65V" id="b0J-Ws-v2Z"/>
+            </connections>
+        </tableViewCell>
+    </objects>
+</document>

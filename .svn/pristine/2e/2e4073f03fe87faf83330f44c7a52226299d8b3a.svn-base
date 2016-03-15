@@ -1,0 +1,39 @@
+//
+//  MyOrderViewController.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/21.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "MyOrderViewController.h"
+#import "OrderSucceessView.h"
+
+@interface MyOrderViewController ()
+
+@end
+
+@implementation MyOrderViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    self.title = @"我的预约";
+    [self showSuccessWithAddress:@"上海市浦东新区金桥公安局" date:@"2015-06-23"];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)showSuccessWithAddress:(NSString*)addr date:(NSString*)date
+{
+    OrderSucceessView *view = [[[NSBundle mainBundle]loadNibNamed:@"OrderSucceessView" owner:self options:nil] lastObject];
+    view.orderAddrLabel.text = addr;
+    view.orderDateLabel.text = date;
+    view.frame = CGRectMake(12, 13, Screen_Width - 24, 326 + 64);
+    [self.view addSubview:view];
+}
+
+@end

@@ -1,0 +1,165 @@
+//
+//  PersonalCenterViewController.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/21.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "PersonalCenterViewController.h"
+#import "PersonalCenterView.h"
+#import "PersonalInfoTableViewController.h"
+#import "AlarmHistoryViewController.h"
+#import "MyOrderViewController.h"
+#import "MyCollectionViewController.h"
+#import "QestionFeedbackViewController.h"
+#import "AboutViewController.h"
+
+NSString * const ShouldShowLoginNotification = @"ShouldShowLoginNotification";
+NSString * const ShouldLogoutNotification = @"ShouldLogoutNotification";
+
+@interface PersonalCenterViewController ()<UIGestureRecognizerDelegate>
+
+@end
+
+@implementation PersonalCenterViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    self.view.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.4];
+    PersonalCenterView *personalCenter = [[PersonalCenterView alloc]initWithFrame:self.view.bounds];
+    [self.view addSubview:personalCenter];
+    CGRect frame = personalCenter.frame;
+    frame.origin.x = 0;
+    personalCenter.frame = frame;
+    
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(needPushNotification:) name:DidNeedPushControllerNotification object:nil];
+    
+    
+    UIButton *hideButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    hideButton.frame =CGRectMake(personalCenter.maxX, 0, self.view.width - personalCenter.maxX , Screen_Height);
+    [hideButton addTarget:self action:@selector(dismissSelf) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:hideButton];
+    
+    
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    self.navigationController.navigationBarHidden = NO;
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(logout) name:ShouldLogoutNotification object:nil];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    self.navigationController.navigationBarHidden = YES;
+    
+}
+
+- (UIStatusBarStyle)preferredStatusBarStyle
+{
+    return UIStatusBarStyleDefault;
+}
+
+#pragma mark - notification
+
+- (void)needPushNotification:(NSNotification*)notifi
+{
+    NSNumber *number = [notifi object];
+    switch ([number integerValue]) {
+        case 0:
+        {
+            //个人信息
+            PersonalInfoTableViewController *personalInfoTBVC = MainStoryBoard(@"personalInfoIdentifier");
+            [self.navigationController pushViewController:personalInfoTBVC animated:YES];
+        }
+            break;
+        case 1:
+        {
+            //报警记录
+            AlarmHistoryViewController *alarmHistoryVC = MainStoryBoard(@"alarmHistoryIdentifier");
+            [self.navigationController pushViewController:alarmHistoryVC animated:YES];
+            
+        }
+            break;
+        case 2:
+        {
+            //我的预约
+            MyOrderViewController *myOrderVC = MainStoryBoard(@"myOrderIdentifier");
+            [self.navigationController pushViewController:myOrderVC animated:YES];
+        }
+            break;
+        case 3:
+        {
+            //我的收藏
+            MyCollectionViewController *myCollectionVC = MainStoryBoard(@"myCollectionIdentifier");
+            [self.navigationController pushViewController:myCollectionVC animated:YES];
+        }
+            break;
+        case 4:
+        {
+            //问题反馈
+            QestionFeedbackViewController *vc = MainStoryBoard(@"qestionFeedbackIdentifier");
+            [self.navigationController pushViewController:vc animated:YES];
+            
+        }
+            break;
+        case 5:
+        {
+            AboutViewController *aboutVC = MainStoryBoard(@"aboutIdentifier");
+            [self.navigationController pushViewController:aboutVC animated:YES];
+        }
+            break;
+        case -1:
+        {
+            [self logout];
+        }
+            break;
+            
+        default:
+            break;
+    }
+    
+}
+
+#pragma mark - UIGestureRecognizerDelegate
+
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
+{
+    CGPoint location = [gestureRecognizer locationInView:self.view];
+    if (location.x > (Screen_Width - 76)) {
+        return YES;
+    }
+    return NO;
+}
+
+#pragma mark - helper
+
+- (void)logout
+{
+    [[NSNotificationCenter defaultCenter]removeObserver:self name:ShouldLogoutNotification object:nil];
+    [self.navigationController.navigationBar setBackgroundImage:[UIImage imageWithColor:[UIColor  clearColor] size:CGSizeMake(Screen_Width, 64)] forBarMetrics:UIBarMetricsDefault];
+    [APUserData sharedUserData].online = NO;
+    [self dismissViewControllerAnimated:YES completion:^{
+        //这个地方需要处理登录界面弹出的问题
+        [[NSNotificationCenter defaultCenter]postNotificationName:ShouldShowLoginNotification object:nil];
+    }];
+}
+
+- (void)dismissSelf
+{
+    [self.navigationController.navigationBar setBackgroundImage:[UIImage imageWithColor:[UIColor  clearColor] size:CGSizeMake(Screen_Width, 64)] forBarMetrics:UIBarMetricsDefault];
+    [self dismissViewControllerAnimated:YES completion:^{
+        
+    }];
+}
+
+@end

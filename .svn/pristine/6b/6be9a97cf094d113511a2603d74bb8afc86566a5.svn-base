@@ -1,0 +1,55 @@
+
+
+//
+//  ImagePickerManager.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/10.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "ImagePickerManager.h"
+
+@implementation ImagePickerManager
+
++ (instancetype)sharedManger
+{
+    static ImagePickerManager *manger = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        manger = [[ImagePickerManager alloc]init];
+    });
+    return manger;
+}
+
+
++ (void)startCameraWithViewController:(UIViewController*)controller
+{
+    if (![InCommonUse isDeviceCameraAvailable]) {
+        UIAlertView *alert = [[UIAlertView alloc]initWithTitle:nil message:@"相机不可用" delegate:nil cancelButtonTitle:@"知道了" otherButtonTitles:nil, nil];
+        [alert show];
+        return;
+    }
+    UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypeCamera;
+    UIImagePickerController *picker = [[UIImagePickerController alloc]init];
+    picker.delegate = self;
+    picker.allowsEditing = YES;
+    picker.sourceType = sourceType;
+    if ([[[UIDevice currentDevice] systemVersion] integerValue] >= 8) {
+        picker.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+    }
+    [controller presentViewController:picker animated:YES completion:nil];
+}
+
+#pragma mark -
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
+{
+
+}
+
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
+{
+    
+}
+
+@end

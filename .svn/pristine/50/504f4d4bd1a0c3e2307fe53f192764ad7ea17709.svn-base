@@ -1,0 +1,57 @@
+//
+//  AlarmStateManager.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 16/1/15.
+//  Copyright © 2016年 Adinnet. All rights reserved.
+//
+
+#import "AlarmStateManager.h"
+
+#define FilePath     [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0] stringByAppendingPathComponent:@"alarmState"]
+
+
+@implementation AlarmStateManager
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder
+{
+    if (self = [super init]) {
+        self.hadAlarmed = [aDecoder decodeBoolForKey:@"hadAlarmed"];
+        self.hadRecived = [aDecoder decodeBoolForKey:@"hadRecived"];
+        self.ownAddr = [aDecoder decodeObjectForKey:@"ownAddr"];
+        self.policeName = [aDecoder decodeObjectForKey:@"policeName"];
+        self.policePhoneNum = [aDecoder decodeObjectForKey:@"policePhoneNum"];
+        self.distance = [aDecoder decodeObjectForKey:@"distance"];
+        self.timeForArrive = [aDecoder decodeObjectForKey:@"timeForArrive"];
+    }
+    return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder
+{
+    [aCoder encodeBool:self.hadAlarmed forKey:@"hadAlarmed"];
+    [aCoder encodeBool:self.hadRecived forKey:@"hadRecived"];
+    [aCoder encodeObject:self.ownAddr forKey:@"ownAddr"];
+    [aCoder encodeObject:self.policeName forKey:@"policeName"];
+    [aCoder encodeObject:self.policePhoneNum forKey:@"policePhoneNum"];
+    [aCoder encodeObject:self.distance forKey:@"distance"];
+    [aCoder encodeObject:self.timeForArrive forKey:@"timeForArrive"];
+}
+
+- (void)saveState
+{
+    BOOL succeed = [NSKeyedArchiver archiveRootObject:self
+                                               toFile:FilePath];
+    if (succeed) {
+        DDLog(@"保存成功");
+    }else{
+        DDLog(@"保存失败");
+    }
+}
+
+- (AlarmStateManager*)getAlarmState
+{
+    return [NSKeyedUnarchiver unarchiveObjectWithFile:FilePath];
+}
+
+@end

@@ -1,0 +1,94 @@
+//
+//  AlarmHistoryViewController.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/21.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "AlarmHistoryViewController.h"
+#import "AlarmHistoryTextCell.h"
+#import "AlarmHistoryImgTextCell.h"
+#import "AlarmHistoryAudioCell.h"
+#import "AlarmHistoryDetailViewController.h"
+
+static NSString *cellIdentifierText = @"alarmTextIdentifier";
+static NSString *cellIdentifierImgText = @"alermImgTextIdentifier";
+static NSString *cellIdentifierAudio = @"alarmAudioIdentifier";
+
+@interface AlarmHistoryViewController ()<UITableViewDelegate, UITableViewDataSource>
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
+
+@end
+
+@implementation AlarmHistoryViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    self.title = @"报警纪录";
+    UIView *header  = [[UIView alloc]initWithFrame:CGRectMake(0, 0, Screen_Width, 10)];
+    header.backgroundColor = RGB(242, 243, 247);
+    self.tableView.tableHeaderView = header;
+    
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    
+    
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - UITableViewDelegate, UITableViewDataSource
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    AlarmHistoryDetailViewController *detailVC = MainStoryBoard(@"alarmDetailIdentifier");
+    [self.navigationController pushViewController:detailVC animated:YES];
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return 10;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    AlarmHistoryTextCell *textCell = [tableView dequeueReusableCellWithIdentifier:cellIdentifierText];
+    AlarmHistoryImgTextCell *imgTextCell = [tableView dequeueReusableCellWithIdentifier:cellIdentifierImgText];
+    AlarmHistoryAudioCell *audioCell = [tableView dequeueReusableCellWithIdentifier:cellIdentifierAudio];
+    if (textCell == nil) {
+        textCell = [[[NSBundle mainBundle] loadNibNamed:@"AlarmHistoryTextCell" owner:self options:nil]lastObject];
+    }
+    if (imgTextCell == nil) {
+        imgTextCell = [[[NSBundle mainBundle] loadNibNamed:@"AlarmHistoryImgTextCell" owner:self options:nil]lastObject];
+    }
+    if (audioCell == nil) {
+        audioCell = [[[NSBundle mainBundle] loadNibNamed:@"AlarmHistoryAudioCell" owner:self options:nil]lastObject];
+    }
+    id resultCell = textCell;
+    textCell.dateLabel.text = @"15.11.24 13:20";
+    [textCell setStatus:HistoryStatusResoving];
+    if (indexPath.row > 7) {
+        [textCell setStatus:HistoryStatusComplete];
+    }
+    
+    textCell.contentLabel.text = @"我在花溪医院称其苹果6手机（价值5300元）被盗";
+    
+    return resultCell;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 76;
+}
+
+@end

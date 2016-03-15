@@ -1,0 +1,55 @@
+
+
+//
+//  MessageDetailViewController.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/22.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "MessageDetailViewController.h"
+
+@interface MessageDetailViewController ()
+@property (weak, nonatomic) IBOutlet UIWebView *webView;
+
+@end
+
+@implementation MessageDetailViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    self.leftBarButtonItem.image = [[UIImage imageNamed:@"back"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    self.leftBarButtonItem.tintColor = [UIColor colorWithHex:0x3A4B76];
+    
+    UIButton *rightButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    rightButton.frame = CGRectMake(0, 0, 20, 20);
+    [rightButton setImage:[UIImage imageNamed:@"unCollect"] forState:UIControlStateNormal];
+    [rightButton setImage:[UIImage imageNamed:@"collect"] forState:UIControlStateSelected];
+    [rightButton addTarget:self action:@selector(rightAction) forControlEvents:UIControlEventTouchUpInside];
+    self.rightBarButtonItem.customView = rightButton;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (UIColor *)navigaitonBarBackgroundColor
+{
+    return [UIColor whiteColor];
+}
+
+- (NSDictionary*)navigationBarTitleTextAttribute
+{
+    return @{NSForegroundColorAttributeName:[UIColor colorWithHex:0x3A4B76],NSFontAttributeName:[UIFont systemFontOfSize:18]};
+}
+
+- (void)rightAction
+{
+    
+}
+
+
+@end

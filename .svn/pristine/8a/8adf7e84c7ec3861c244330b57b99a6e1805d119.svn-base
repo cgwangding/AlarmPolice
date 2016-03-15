@@ -1,0 +1,382 @@
+//
+//  ImageMessageToolView.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/10.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "ImageMessageToolView.h"
+#import "AppDelegate.h"
+#import <AssetsLibrary/AssetsLibrary.h>
+
+
+@interface ImageMessageToolView()<UIGestureRecognizerDelegate, UITextViewDelegate>
+
+//
+@property (strong, nonatomic) UIWindow *showWindow;
+@property (strong, nonatomic) UIButton *cancelButton;
+@property (strong, nonatomic) UIButton *certainButton;
+
+@property (strong, nonatomic) UITextView *textView;
+@property (strong, nonatomic) UILabel *textViewPlaceholder;
+
+@property (strong, nonatomic) UIView *imageStackView;
+
+@property (copy, nonatomic) NeedAddImageBlock block;
+
+@property (assign,nonatomic) CGFloat limitY;
+
+@property (assign, nonatomic) BOOL isWillHideKeyBoard;
+
+@property (copy, nonatomic) SendButtonDidClicked sendBlock;
+
+
+@end
+
+@implementation ImageMessageToolView
+
+- (instancetype)init
+{
+    if (self = [super init]) {
+        self.frame = CGRectMake(0, Screen_Height - 302, Screen_Width, 302);
+        self.backgroundColor = [UIColor whiteColor];
+        [self setupWidget];
+        [self addNotification];
+        
+        UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapHide)];
+        tapGesture.delegate = self;
+        [self.showWindow addGestureRecognizer:tapGesture];
+        
+    }
+    return self;
+}
+
+- (void)show
+{
+    self.textView.text = self.userInput;
+    [self.showWindow makeKeyAndVisible];
+    [self.showWindow addSubview:self];
+}
+
+- (void)hide
+{
+    [self.showWindow resignKeyWindow];
+    //    [self removeFromSuperview];
+    self.showWindow.hidden = YES;
+}
+
+#pragma mark - tapGesture
+
+- (void)tapHide
+{
+    AppDelegate *app = (AppDelegate*)[UIApplication sharedApplication].delegate;
+    app.sharedInputStr = nil;
+    [app.sharedImageArr removeAllObjects];
+    [self hide];
+    
+}
+
+
+#pragma mark - notification
+
+- (void)addNotification
+{
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(keyboardDidShowNotification:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(keyboardDidShowNotification:) name:UIKeyboardDidChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(keyboardDidShowNotification:) name:UIKeyboardWillHideNotification object:nil];
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(keyboardDidHideNotification:) name:UIKeyboardDidHideNotification object:nil];
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(textViewTextDidChangedNotification:) name:UITextViewTextDidChangeNotification object:nil];
+}
+
+- (void)removeNotification
+{
+    [[NSNotificationCenter defaultCenter]removeObserver:self name:UIKeyboardDidShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter]removeObserver:self name:UIKeyboardDidChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter]removeObserver:self name:UIKeyboardWillHideNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardDidHideNotification object:nil];
+    [[NSNotificationCenter defaultCenter]removeObserver:self name:UITextViewTextDidChangeNotification object:nil];
+}
+
+- (void)keyboardDidShowNotification:(NSNotification*)notifi
+{
+    NSDictionary *dict = [notifi userInfo];
+    if (self.isWillHideKeyBoard) {
+        return;
+    }
+    if ([notifi.name isEqualToString:UIKeyboardWillHideNotification]) {
+        self.isWillHideKeyBoard = YES;
+        [UIView animateWithDuration:[dict[UIKeyboardAnimationDurationUserInfoKey] floatValue] animations:^{
+            CGRect frame = self.frame;
+            frame.origin.y += ((Screen_Height - 302) - frame.origin.y);
+            self.frame = frame;
+        } completion:^(BOOL finished) {
+            
+        }];
+        return;
+    }
+    //如果有需要再使用
+    
+    CGRect endRect = [[dict objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    if ((self.limitY + self.y)> endRect.origin.y) {
+        CGRect frame = self.frame;
+        frame.origin.y = endRect.origin.y - self.limitY;
+        self.frame = frame;
+    }else{
+        CGRect frame = self.frame;
+        frame.origin.y = endRect.origin.y - self.limitY;
+        self.frame = frame;
+    }
+}
+
+- (void)keyboardDidHideNotification:(NSNotification*)notifi
+{
+    self.isWillHideKeyBoard = NO;
+    //    NSDictionary *dict = [notifi userInfo];
+    
+}
+
+- (void)textViewTextDidChangedNotification:(NSNotification*)notifi
+{
+    UITextView *textView = [notifi object];
+    AppDelegate *app = (AppDelegate*)[UIApplication sharedApplication].delegate;
+    app.sharedInputStr = textView.text;
+    if ([textView.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]].length == 0) {
+        self.textViewPlaceholder.hidden = NO;
+    }else{
+        self.textViewPlaceholder.hidden = YES;
+    }
+}
+
+
+#pragma mark - UIGestureRecognizerDelegate
+
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
+{
+    CGPoint touchPoint = [gestureRecognizer locationInView:self];
+    if (touchPoint.y < 0) {
+        return YES;
+    }
+    return NO;
+}
+
+#pragma mark - UITextViewDelegate
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text
+{
+    if ([text isEqualToString:@"\n"]) {
+        [textView resignFirstResponder];
+        return NO;
+    }
+    return YES;
+}
+
+#pragma mark - public
+
+- (void)onClickedAddContinueButtonBlock:(NeedAddImageBlock)blolck
+{
+    self.block = blolck;
+}
+
+- (void)onClickedCertainButtonBlock:(SendButtonDidClicked)block
+{
+    self.sendBlock = block;
+}
+
+#pragma mark - private
+
+- (void)setupWidget
+{
+    [self addSubview:self.cancelButton];
+    [self addSubview:self.certainButton];
+    
+    UIView *line1 = [[UIView alloc]initWithFrame:CGRectMake(14,self.cancelButton.maxY , Screen_Width - 28, 1)];
+    line1.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.1];
+    [self addSubview:line1];
+    
+    [self addSubview:self.textView];
+    self.textView.frame = CGRectMake(14, line1.maxY, Screen_Width - 28, 138);
+    
+    UIView *line2 = [[UIView alloc]initWithFrame:CGRectMake(14, self.textView.maxY, line1.width, 1)];
+    line2.backgroundColor = line1.backgroundColor;
+    [self addSubview:line2];
+    self.limitY = line2.maxY;
+    
+    [self addSubview:self.imageStackView];
+    self.imageStackView.frame = CGRectMake(0, line2.maxY + 20, Screen_Width, 76);
+    [self setupImageStackView];
+    
+    
+}
+
+- (void)setupImageStackView
+{
+    //布局图片最多4个
+    CGFloat itemWH = 76;
+    CGFloat itemSpace = (Screen_Width - 28 - itemWH * 4) / 3;
+    if (self.imageArray == nil) {
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+        [button setFrame:CGRectMake(14, 0, itemWH, itemWH)];
+        //        button.backgroundColor = [UIColor lightGrayColor];
+        [button setBackgroundImage:[UIImage imageNamed:@"add_continue"] forState:UIControlStateNormal];
+        [button addTarget:self action:@selector(imageAddButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+        [self.imageStackView addSubview:button];
+    }else{
+        for (int i = 0; i < (self.imageArray.count >= 4?4:self.imageArray.count); i++) {
+            UIImageView *imgView = [[UIImageView alloc]initWithImage:self.imageArray[i]];
+            imgView.frame = CGRectMake(14 + itemSpace * i + itemWH * i, 0, itemWH, itemWH);
+            imgView.cornerRadius = 4;
+            [self.imageStackView addSubview:imgView];
+        }
+        if (self.imageArray.count < 4) {
+            UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+            [button setFrame:CGRectMake(14 + (itemWH + itemSpace) * self.imageArray.count, 0, itemWH, itemWH)];
+            //            button.backgroundColor = [UIColor lightGrayColor];
+            [button setBackgroundImage:[UIImage imageNamed:@"add_continue"] forState:UIControlStateNormal];
+            [button addTarget:self action:@selector(imageAddButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+            [self.imageStackView addSubview:button];
+        }
+    }
+}
+
+#pragma mark - button action
+
+- (void)certainButtonClicked:(UIButton*)button
+{
+    [self hide];
+    if (self.sendBlock) {
+        NSArray *arr = [self.imageArray copy];
+        self.sendBlock(arr, self.textView.text);
+    }
+    
+}
+
+//
+- (void)cancelButtonClicked:(UIButton*)button
+{
+    [self hide];
+    AppDelegate *app = (AppDelegate*)[UIApplication sharedApplication].delegate;
+    app.sharedInputStr = nil;
+    [app.sharedImageArr removeAllObjects];
+}
+
+
+- (void)imageAddButtonClicked:(UIButton*)button
+{
+    if ([self isAuthorizetionPhotoLibarary]) {
+        if (self.block) {
+            self.block();
+        }
+        [self hide];
+    }
+}
+
+#pragma mark - helper
+
+- (BOOL)isAuthorizetionPhotoLibarary
+{
+    BOOL isAuth = NO;
+    ALAuthorizationStatus authStatus = [ALAssetsLibrary authorizationStatus];
+    if (authStatus == ALAuthorizationStatusDenied || authStatus == ALAuthorizationStatusRestricted) {
+        UIAlertView *alert = [[UIAlertView alloc]initWithTitle:@"未获得授权使用相册" message:@"请在\"设置\"->\"隐私\"->\"照片\"中打开" delegate:nil cancelButtonTitle:@"知道了" otherButtonTitles:nil, nil];
+        [alert show];
+    }else{
+        isAuth = YES;
+    }
+    
+    return isAuth;
+}
+
+#pragma mark - setter
+
+- (void)setImageArray:(NSArray<UIImage *> *)imageArray
+{
+    if (imageArray) {
+        _imageArray = imageArray;
+        [self.imageStackView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+        [self setupImageStackView];
+    }
+}
+
+#pragma mark - getter
+
+- (UIWindow *)showWindow
+{
+    if (_showWindow == nil) {
+        _showWindow = [[UIWindow alloc]initWithFrame:CGRectMake(0, 0, Screen_Width, Screen_Height)];
+        [_showWindow setWindowLevel:UIWindowLevelAlert];
+        _showWindow.backgroundColor = [[UIColor darkTextColor] colorWithAlphaComponent:.2];
+    }
+    return _showWindow;
+}
+
+- (UIButton *)cancelButton
+{
+    if (_cancelButton == nil) {
+        _cancelButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        _cancelButton.frame = CGRectMake(0, 0, 56, 46);
+        [_cancelButton setTitle:@"取消" forState:UIControlStateNormal];
+        [_cancelButton setTitleColor:[UIColor colorWithHex:0x595959] forState:UIControlStateNormal];
+        [_cancelButton addTarget:self action:@selector(cancelButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _cancelButton;
+}
+
+- (UIButton *)certainButton
+{
+    if (_certainButton == nil) {
+        _certainButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        _certainButton.frame = CGRectMake(Screen_Width - 56, 0, 56, 46);
+        [_certainButton setTitle:@"完成" forState:UIControlStateNormal];
+        [_certainButton setTitleColor:[UIColor colorWithHex:0x595959] forState:UIControlStateNormal];
+        [_certainButton addTarget:self action:@selector(certainButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _certainButton;
+}
+
+- (UITextView *)textView
+{
+    if (_textView == nil) {
+        _textView = [[UITextView alloc]init];
+        _textView.font = [UIFont systemFontOfSize:12];
+        //        _textView.selectable = NO;
+        _textView.delegate = self;
+        [_textView addSubview:self.textViewPlaceholder];
+        if (self.userInput) {
+            _textView.text = self.userInput;
+            self.textViewPlaceholder.hidden = YES;
+        }
+        
+    }
+    return _textView;
+}
+
+- (UILabel *)textViewPlaceholder
+{
+    if (_textViewPlaceholder == nil) {
+        _textViewPlaceholder = [[UILabel alloc]initWithFrame:CGRectMake(5, 0, 200, 30)];
+        _textViewPlaceholder.font = [UIFont systemFontOfSize:12];
+        _textViewPlaceholder.textColor = [[UIColor colorWithHex:0x030303] colorWithAlphaComponent:0.4];
+        _textViewPlaceholder.text = @"请告诉警方你在哪，发生了什么";
+    }
+    return _textViewPlaceholder;
+}
+
+- (UIView *)imageStackView
+{
+    if (_imageStackView == nil) {
+        _imageStackView = [[UIView alloc]initWithFrame:CGRectMake(0, 20, Screen_Width, 76)];
+        //        _imageStackView.backgroundColor = [[UIColor purpleColor] colorWithAlphaComponent:0.1];
+    }
+    return _imageStackView;
+}
+
+
+-(void)dealloc
+{
+    [self removeNotification];
+    
+}
+
+
+@end

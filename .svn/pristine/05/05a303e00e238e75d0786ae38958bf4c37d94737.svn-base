@@ -1,0 +1,202 @@
+//
+//  LoginViewController.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/15.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "LoginViewController.h"
+#import "CustomTabBarController.h"
+
+@interface LoginViewController ()<UITextFieldDelegate>
+@property (weak, nonatomic) IBOutlet UITextField *userNameTF;
+@property (weak, nonatomic) IBOutlet UIImageView *bgImgView;
+
+@property (weak, nonatomic) IBOutlet UITextField *userPwdTF;
+- (IBAction)loginButtonClicked:(id)sender;
+- (IBAction)registButtonClicked:(id)sender;
+- (IBAction)showOrHiddenPwdButtonClicked:(id)sender;
+- (IBAction)forgetPwdButtonClicked:(id)sender;
+
+@end
+
+@implementation LoginViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    [self.view sendSubviewToBack:self.bgImgView];
+    self.bgImgView.hidden = YES;
+    CAGradientLayer *layer = [CAGradientLayer layer];
+    layer.frame = self.view.bounds;
+    layer.colors = @[(id)[UIColor colorWithHex:0x4C6091].CGColor,(id)[UIColor colorWithHex:0x3A4B76].CGColor];
+    layer.locations = @[@(0),@(1)];
+    [self.view.layer insertSublayer:layer atIndex:0];
+    
+    default_add_Bool(YES, APNotFirstLaunchKey);
+    default_synchronize;
+    
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    self.navigationController.navigationBarHidden = YES;
+    
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark -
+
+- (BOOL)textFieldShouldReturn:(UITextField *)textField
+{
+    [textField resignFirstResponder];
+    return YES;
+}
+
+#pragma mark - HTTP
+
+- (void)login
+{
+    /*
+     {
+     Code = 200;
+     Data =     {
+     user =         {
+     address = shanghaibibolu690;
+     alias = 8744331799c2484d95200fb56db529ae;
+     authorizationKey = "<null>";
+     avatar = "<null>";
+     beforePassword = "<null>";
+     birthDay = "<null>";
+     city = "<null>";
+     cmpyAddress = "<null>";
+     cmpyTel = "<null>";
+     company = "<null>";
+     confirmPassword = "<null>";
+     distance = "<null>";
+     dot = "<null>";
+     email = "<null>";
+     file = "";
+     firstName = "<null>";
+     hobby = "<null>";
+     idCard = 612322199208096789;
+     inputDate = "<null>";
+     isBindEmail = "<null>";
+     isBindMobile = "<null>";
+     joined = "2015-12-25 18:05:18.0";
+     lastLogin = "<null>";
+     lastName = "<null>";
+     latitude = "<null>";
+     longitude = "<null>";
+     marriage = "<null>";
+     memberType = "<null>";
+     mobile = "<null>";
+     money = "<null>";
+     name = "<null>";
+     nickName = "<null>";
+     passwordAnswer = "<null>";
+     passwordQuestion = "<null>";
+     realName = wa;
+     sex = male;
+     tag = people;
+     telephone = 15901505759;
+     tokenID = 3468eb068c470ae162c23aa799445b9b;
+     userID = 0fff3e3485cd4d1f9528a4b4018d005d;
+     userName = 15901505759;
+     userPassword = 4ddbeb6864e7ebb8630fff9fb8b7d1e95955e7e7;
+     zip = "<null>";
+     zipCode = "<null>";
+     };
+     };
+     IsSuccess = true;
+     Msg = "\U6210\U529f\Uff01";
+     }
+     */
+    NSDictionary *params = @{
+                             @"userName":self.userNameTF.text,
+                             @"userPassword":self.userPwdTF.text,
+                             @"tokenID":UUID,
+                             @"alias":UUID,
+                             @"tag":@"tag_people"
+                             };
+    __weak typeof(self) weakSelf = self;
+    [self.view showWithStatus:@"登录中……"];
+    [APIManager loginWithParams:params success:^(NSDictionary *dict) {
+        __strong typeof(self) strongSelf = weakSelf;
+        [strongSelf.view showWithMessage:@"登录成功"];
+        [strongSelf.view hudHide];
+         [APService setTags:[NSSet setWithObject:UUID] callbackSelector:@selector(tagsAliasCallback:tags:alias:) object:strongSelf];
+        [[APUserData sharedUserData]configData:dict[@"Data"][@"hasmember"]];
+        [APUserData sharedUserData].online = YES;
+        CustomTabBarController *customTabBarController = MainStoryBoard(@"customTabbarControllerIdentifier");
+        [strongSelf.navigationController pushViewController:customTabBarController animated:YES];
+    } dataError:^(NSInteger code, NSString *message) {
+        __strong typeof(self) strongSelf = weakSelf;
+        [strongSelf.view hudHide];
+        [strongSelf.view showWithMessage:message];
+        
+    } failure:^(NSError *error) {
+        __strong typeof(self) strongSelf = weakSelf;
+        [strongSelf.view hudHide];
+        [strongSelf.view showWithMessage:@"服务器不给力,请稍后重试~~"];
+    }];
+}
+
+#pragma mark - call back 
+
+-(void)tagsAliasCallback:(int)iResCode
+                    tags:(NSSet*)tags
+                   alias:(NSString*)alias
+{
+    NSLog(@"rescode: %d, \ntags: %@, \nalias: %@\n", iResCode, tags , alias);
+    if (iResCode == 0) {
+        DDLog(@"设置成功");
+    }
+}
+
+#pragma mark - button action
+
+- (IBAction)loginButtonClicked:(id)sender {
+    if (self.userNameTF.text == nil) {
+        [self.view showWithMessage:@"请输入用户名"];
+        return;
+    }
+    if (self.userPwdTF.text == nil) {
+        [self.view showWithMessage:@"请输入密码"];
+        return;
+    }
+    [self login];
+}
+
+- (IBAction)registButtonClicked:(id)sender {
+    
+    
+}
+
+- (IBAction)showOrHiddenPwdButtonClicked:(id)sender {
+    UIButton *button = (UIButton*)sender;
+    button.selected = !button.selected;
+    if (button.selected) {
+        //显示密码
+        self.userPwdTF.secureTextEntry = NO;
+    }else{
+        self.userPwdTF.secureTextEntry = YES;
+    }
+}
+- (IBAction)forgetPwdButtonClicked:(id)sender {
+    
+    
+}
+@end

@@ -1,0 +1,25 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "1a8991ef-03d9-684e-8c08-3971ac6e45aa++3506",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+    "1a8991ef-03d9-684e-8c08-3971ac6e45aa++3506" : {
+
+    }
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "1a8991ef-03d9-684e-8c08-3971ac6e45aa++3506" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "8CE6CAC6-C582-460C-86E8-3C5B4D278127",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "1a8991ef-03d9-684e-8c08-3971ac6e45aa++3506" : "AlarmPolice\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "AlarmPolice",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "AlarmPolice.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "http:\/\/101.231.200.154:1688\/svn\/dededachebaojin",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "1a8991ef-03d9-684e-8c08-3971ac6e45aa++3506"
+    }
+  ]
+}

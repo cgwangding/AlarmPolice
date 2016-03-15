@@ -1,0 +1,31 @@
+//
+//  DLInterfaceDefines.h
+//  DuoLiFarm
+//
+//  Created by AD-iOS on 15/5/13.
+//  Copyright (c) 2015年 wangding. All rights reserved.
+//
+
+
+#define BaseInterfaceURL                  @"http://10.40.200.56:8080"
+
+//获取地区
+#define APGetAreaInfoInterface              @"/DiDiAlarm/loginApp.do?p=findCityArea"
+
+//注册
+#define APRegistInterface              @"/DiDiAlarm/loginApp.do?p=register"
+
+//发送手机验证码
+#define APSendVerifyCodeInterface              @"/DiDiAlarm/loginApp.do?p=regsiterByPhone"
+
+//完善用户信息
+#define APCompeleteUserInfoInterface              @"/DiDiAlarm/ loginApp.do?p=singLogin"
+
+//登录
+#define APLoginInterface              @"/DiDiAlarm/loginApp.do?p=peopleLoginApp"
+
+//一键报警
+#define APAlarmQuicklyInterface              @"/DiDiAlarm/Alarm.do?p=callByOneKey"
+
+//上传录音文件
+#define APUploadVoiceInterface              @"/DiDiAlarm/Alarm.do? p=checkFile"

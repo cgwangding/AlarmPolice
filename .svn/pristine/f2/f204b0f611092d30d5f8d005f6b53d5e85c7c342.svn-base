@@ -1,0 +1,130 @@
+//
+//  AlarmViewController.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/8.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "AlarmViewController.h"
+#import "MessageToolView.h"
+#import "ImageMessageToolView.h"
+#import "AppDelegate.h"
+
+@interface AlarmViewController ()<BMKMapViewDelegate, MessageToolViewDelegate, UIImagePickerControllerDelegate>
+@property (weak, nonatomic) IBOutlet BMKMapView *mapView;
+@property (weak, nonatomic) IBOutlet UIButton *alarmButton;
+
+- (IBAction)alarmButtonClicked:(id)sender;
+@end
+
+@implementation AlarmViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    [self.mapView viewWillAppear];
+    self.mapView.delegate = self;
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    [self.mapView viewWillDisappear];
+    self.mapView.delegate = nil;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - MessageToolViewDelegate
+
+- (void)messageToolViewNeedPresentCamera:(MessageToolView *)toolView
+{
+    [self startCarmera];
+}
+
+- (void)messageToolViewNeedPresentImagePicker:(MessageToolView *)toolView
+{
+    [self startPhotoLibarary];
+}
+
+- (void)startCarmera
+{
+    if (![InCommonUse isDeviceCameraAvailable]) {
+        UIAlertView *alert = [[UIAlertView alloc]initWithTitle:nil message:@"相机不可用" delegate:nil cancelButtonTitle:@"知道了" otherButtonTitles:nil, nil];
+        [alert show];
+        return;
+    }
+    UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypeCamera;
+    UIImagePickerController *picker = [[UIImagePickerController alloc]init];
+    picker.delegate = self;
+    picker.allowsEditing = YES;
+    picker.sourceType = sourceType;
+    if ([[[UIDevice currentDevice] systemVersion] integerValue] >= 8) {
+        picker.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+    }
+    [self presentViewController:picker animated:YES completion:nil];
+}
+
+- (void)startPhotoLibarary
+{
+    if (![InCommonUse isPhotoLibraryAvailable]) {
+        UIAlertView *alert = [[UIAlertView alloc]initWithTitle:nil message:@"相册不可用" delegate:nil cancelButtonTitle:@"知道了" otherButtonTitles:nil, nil];
+        [alert show];
+        return;
+    }
+    UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    UIImagePickerController *picker = [[UIImagePickerController alloc]init];
+    picker.delegate = self;
+    picker.allowsEditing = YES;
+    picker.sourceType = sourceType;
+    if ([[[UIDevice currentDevice] systemVersion] integerValue] >= 8) {
+        picker.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+    }
+    [self presentViewController:picker animated:YES completion:nil];
+}
+
+#pragma mark -
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
+{
+    UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
+    //这个时候需要弹出一个页面
+    AppDelegate *app = (AppDelegate*)[UIApplication sharedApplication].delegate;
+    [app.sharedImageArr addObject:image];
+    [picker dismissViewControllerAnimated:YES completion:^{
+        ImageMessageToolView *imgMsgView = [[ImageMessageToolView alloc]init];
+        imgMsgView.imageArray = [NSArray arrayWithArray:app.sharedImageArr];
+        imgMsgView.userInput = app.sharedInputStr;
+        [imgMsgView show];
+        
+        [imgMsgView onClickedAddContinueButtonBlock:^{
+            [self startPhotoLibarary];
+        }];
+        
+    }];
+}
+
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
+{
+    [picker dismissViewControllerAnimated:YES completion:nil];
+}
+
+
+#pragma mark - button action
+
+- (IBAction)alarmButtonClicked:(id)sender {
+    MessageToolView *toolView = [[MessageToolView alloc]init];
+    toolView.delegate = self;
+    [toolView show];
+    
+}
+@end

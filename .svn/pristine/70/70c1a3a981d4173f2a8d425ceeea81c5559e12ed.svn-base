@@ -1,0 +1,499 @@
+//
+//  AlarmViewController.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/8.
+//  Copyright © 2015年 ;;. All rights reserved.
+//
+
+#import "AlarmViewController.h"
+#import "MessageToolView.h"
+#import "ImageMessageToolView.h"
+#import "AppDelegate.h"
+#import "YBImgPickerViewController.h"
+#import "AlarmQuickView.h"
+#import "AudioTransfer.h"
+#import "WDAudioPlayer.h"
+#import "PersonalCenterViewController.h"
+
+NSString * const AlarmSuccessNotification = @"AlarmSuccessNotification";
+
+@interface AlarmViewController ()<BMKMapViewDelegate, MessageToolViewDelegate, UIImagePickerControllerDelegate,YBImgPickerViewControllerDelegate,BMKLocationServiceDelegate,BMKGeoCodeSearchDelegate>
+@property (weak, nonatomic) IBOutlet BMKMapView *mapView;
+@property (weak, nonatomic) IBOutlet UIButton *alarmButton;
+
+@property (strong, nonatomic) YBImgPickerViewController *imgController;
+
+@property (weak, nonatomic) IBOutlet AlarmQuickView *alarmQuickView;
+
+@property (strong, nonatomic) BMKLocationService *locService;
+
+@property (strong, nonatomic) BMKGeoCodeSearch *geoSearch;
+
+@property (copy, nonatomic) NSString *longitude;
+@property (copy, nonatomic) NSString *latitude;
+
+@property (assign, nonatomic) BOOL isLocated;
+
+@end
+
+@implementation AlarmViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    self.mapView.mapType = BMKMapTypeStandard;
+    //定位
+    self.locService = [[BMKLocationService alloc]init];
+    self.locService.delegate = self;
+    
+    self.geoSearch = [[BMKGeoCodeSearch alloc]init];
+    self.geoSearch.delegate = self;
+    
+    
+    UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(alarmQuickly)];
+    longPress.minimumPressDuration = 1;
+    [self.alarmButton addGestureRecognizer:longPress];
+    
+    UITapGestureRecognizer *tapClicked = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(alarmButtonTap)];
+    [self.alarmButton addGestureRecognizer:tapClicked];
+    
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    [self.mapView viewWillAppear];
+    self.mapView.delegate = self;
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    [self.mapView viewWillDisappear];
+    self.mapView.delegate = nil;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (UIColor *)navigaitonBarBackgroundColor
+{
+    return [UIColor whiteColor];
+}
+
+
+#pragma mark - MessageToolViewDelegate
+
+- (void)messageToolViewNeedPresentCamera:(MessageToolView *)toolView
+{
+    [self startCarmera];
+}
+
+- (void)messageToolViewNeedPresentImagePicker:(MessageToolView *)toolView
+{
+    [self startPhotoLibarary];
+}
+
+- (void)messageToolView:(MessageToolView *)toolView didNeedSendRecord:(NSURL *)filePath withError:(NSError *)error
+{
+    if (error) {
+        [SVProgressHUD showErrorWithStatus:error.domain];
+    }else{
+#warning 此处发送录音
+        DDLog(@"发送录音");
+        //编码成mp3
+        NSData *data = [[NSData alloc]initWithContentsOfURL:filePath];
+        AudioTransfer *transfer = [[AudioTransfer alloc]init];
+        NSData *resultMp3Data = [transfer transferWavToMp3:data];
+        
+        [self recordSendWithData:resultMp3Data];
+        
+        
+        //        WDAudioPlayer *audioPlayer = [[WDAudioPlayer alloc]initWithData:resultMp3Data];
+        //        [audioPlayer audioPlay];
+        
+        //        [self.view makeToast:@"发送中……"];
+        
+        //        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+        //        hud.labelText = @"发送中……";
+        //        [hud show:YES];
+        //        [hud hide:YES afterDelay:5];
+        //
+        //        [SVProgressHUD showInfoWithStatus:@"发送中……"];
+        //        [SVProgressHUD dismissWithDelay:1];
+        //        [SVProgressHUD showSuccessWithStatus:@"发送成功"];
+        //        dispatch_async(dispatch_get_main_queue(), ^{
+        //            [SVProgressHUD showWithStatus:@"发送中……"];
+        //            [SVProgressHUD dismissWithDelay:3];
+        //        });
+    }
+}
+
+- (void)messageToolView:(MessageToolView *)toolView didNeedSendMessage:(NSString *)message
+{
+#warning 此处进行文字信息的发送
+    
+}
+
+#pragma mark - MessageToolViewDelegate method helper
+- (void)startCarmera
+{
+    if (![InCommonUse isDeviceCameraAvailable]) {
+        UIAlertView *alert = [[UIAlertView alloc]initWithTitle:nil message:@"相机不可用" delegate:nil cancelButtonTitle:@"知道了" otherButtonTitles:nil, nil];
+        [alert show];
+        return;
+    }
+    UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypeCamera;
+    UIImagePickerController *picker = [[UIImagePickerController alloc]init];
+    picker.delegate = self;
+    picker.allowsEditing = YES;
+    picker.sourceType = sourceType;
+    if ([[[UIDevice currentDevice] systemVersion] integerValue] >= 8) {
+        picker.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+    }
+    [self presentViewController:picker animated:YES completion:nil];
+}
+
+- (void)startPhotoLibarary
+{
+    if (![InCommonUse isPhotoLibraryAvailable]) {
+        UIAlertView *alert = [[UIAlertView alloc]initWithTitle:nil message:@"相册不可用" delegate:nil cancelButtonTitle:@"知道了" otherButtonTitles:nil, nil];
+        [alert show];
+        return;
+    }
+    UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    UIImagePickerController *picker = [[UIImagePickerController alloc]init];
+    picker.delegate = self;
+    picker.allowsEditing = YES;
+    picker.sourceType = sourceType;
+    if ([[[UIDevice currentDevice] systemVersion] integerValue] >= 8) {
+        picker.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+    }
+    [self presentViewController:picker animated:YES completion:nil];
+}
+
+#pragma mark - UIImagePickerControllerDelegate
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
+{
+    UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
+    //这个时候需要弹出一个页面
+    AppDelegate *app = (AppDelegate*)[UIApplication sharedApplication].delegate;
+    [app.sharedImageArr addObject:image];
+    [picker dismissViewControllerAnimated:YES completion:^{
+        if ([self.imgController respondsToSelector:@selector(dismissViewControllerAnimated:completion:)]) {
+            [self.imgController dismissViewControllerAnimated:NO completion:nil];
+        }
+        ImageMessageToolView *imgMsgView = [[ImageMessageToolView alloc]init];
+        imgMsgView.imageArray = [NSArray arrayWithArray:app.sharedImageArr];
+        imgMsgView.userInput = app.sharedInputStr;
+        [imgMsgView show];
+        
+        [imgMsgView onClickedAddContinueButtonBlock:^{
+            //            [self startPhotoLibarary];
+            //相片图片选择器
+            YBImgPickerViewController *controller = [[YBImgPickerViewController alloc]init];
+            [controller showInViewContrller:self choosenNum:(4 - app.sharedImageArr.count) delegate:self];
+            self.imgController = controller;
+        }];
+        
+        [imgMsgView onClickedCertainButtonBlock:^(NSArray<UIImage *> *imageArr, NSString *text) {
+#warning 这里调用发送消息的方法
+            
+        }];
+    }];
+}
+
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
+{
+    [picker dismissViewControllerAnimated:YES completion:nil];
+}
+
+#pragma mark - YBImgPickerViewControllerDelegate
+
+- (void)YBImagePickerDidFinishWithImages:(NSArray *)imageArray {
+    AppDelegate *app = (AppDelegate*)[UIApplication sharedApplication].delegate;
+    [app.sharedImageArr addObjectsFromArray:imageArray];
+    ImageMessageToolView *imgMsgView = [[ImageMessageToolView alloc]init];
+    imgMsgView.imageArray = [NSArray arrayWithArray:app.sharedImageArr];
+    imgMsgView.userInput = app.sharedInputStr;
+    [imgMsgView show];
+    
+    [imgMsgView onClickedAddContinueButtonBlock:^{
+        //            [self startPhotoLibarary];
+        //相片图片选择器
+        YBImgPickerViewController *controller = [[YBImgPickerViewController alloc]init];
+        [controller showInViewContrller:self choosenNum:(4 - app.sharedImageArr.count) delegate:self];
+        self.imgController = controller;
+    }];
+}
+
+#pragma mark - BMKLocationServiceDelegate
+
+- (void)willStartLocatingUser
+{
+    
+}
+
+- (void)didStopLocatingUser
+{
+    
+}
+
+- (void)didUpdateBMKUserLocation:(BMKUserLocation *)userLocation
+{
+    if (userLocation) {
+        self.isLocated = YES;
+        [self.locService stopUserLocationService];
+        
+        CLLocationCoordinate2D coor = userLocation.location.coordinate;
+        self.longitude = [NSString stringWithFormat:@"%f",coor.longitude];
+        self.latitude = [NSString stringWithFormat:@"%f",coor.latitude];
+        
+        [self.mapView setCenterCoordinate:coor animated:NO];
+        
+        BMKReverseGeoCodeOption *reverseGeo = [[BMKReverseGeoCodeOption alloc]init];
+        reverseGeo.reverseGeoPoint = coor;
+        BOOL flag = [self.geoSearch reverseGeoCode:reverseGeo];
+        if (flag == NO) {
+            [self.view makeToast:@"地址检索失败"];
+            BMKPointAnnotation *ann = [[BMKPointAnnotation alloc]init];
+            ann.coordinate = coor;
+            [self.mapView addAnnotation:ann];
+            
+        }
+        
+        
+    }
+}
+
+- (void)didFailToLocateUserWithError:(NSError *)error
+{
+    [SVProgressHUD showInfoWithStatus:@"定位失败"];
+    self.isLocated = NO;
+}
+
+#pragma mark - BMKMapViewDelegate
+
+- (void)mapViewDidFinishLoading:(BMKMapView *)mapView
+{
+    if ([CLLocationManager locationServicesEnabled] &&
+        ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized
+         || [CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined)) {
+            [self.locService startUserLocationService];
+        }else if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusDenied){
+            UIAlertView *alert = [[UIAlertView alloc]initWithTitle:@"未获得授权使用定位" message:@"请在\"设置\"->\"隐私\"->\"定位服务\"中打开" delegate:nil cancelButtonTitle:@"知道了" otherButtonTitles:nil, nil];
+            [alert show];
+        }
+}
+
+- (BMKAnnotationView *)mapView:(BMKMapView *)mapView viewForAnnotation:(id<BMKAnnotation>)annotation
+{
+    BMKAnnotationView *annView = [[BMKAnnotationView alloc]initWithAnnotation:annotation reuseIdentifier:nil];
+    if ([annotation isKindOfClass:[BMKPointAnnotation class]]) {
+        annView.image = [UIImage imageNamed:@"zhuobiao"];
+        annView.calloutOffset = CGPointMake(0, -8);
+        
+        UILabel *label = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 0, 30)];
+        label.backgroundColor = [UIColor whiteColor];
+        label.cornerRadius = 4;
+        label.textColor = APCyanColor;
+        label.font = [UIFont systemFontOfSize:12];
+        label.text = [annotation title];
+        
+        CGSize size = [label sizeThatFits:CGSizeMake(MAXFLOAT, 30)];
+        label.width = size.width;
+        
+        BMKActionPaopaoView *paopaoView = [[BMKActionPaopaoView alloc]initWithCustomView:label];
+        annView.paopaoView = paopaoView;
+        
+        return annView;
+    }
+    return nil;
+}
+
+#pragma mark - BMKGeoCodeSearchDelegate
+
+- (void)onGetReverseGeoCodeResult:(BMKGeoCodeSearch *)searcher result:(BMKReverseGeoCodeResult *)result errorCode:(BMKSearchErrorCode)error
+{
+    if (error == BMK_SEARCH_NO_ERROR) {
+        NSString *address = result.address;
+        CLLocationCoordinate2D coor = result.location;
+        
+        BMKPointAnnotation *ann = [[BMKPointAnnotation alloc]init];
+        ann.coordinate = coor;
+        ann.title = [NSString stringWithFormat:@"我在%@",address];
+        [self.mapView addAnnotation:ann];
+        [self.mapView selectAnnotation:ann animated:YES];
+        [self.mapView setCenterCoordinate:coor animated:YES];
+        self.mapView.zoomLevel = 18;
+        
+        
+    }
+}
+
+#pragma mark - HTTP
+
+- (void)recordSendWithData:(NSData*)resultMp3Data
+{
+    [SVProgressHUD showWithStatus:@"发送中……"];
+    __weak typeof(self) weakSelf = self;
+    
+    [APIManager uploadVoiceFileWithBlock:^(id<AFMultipartFormData> formData) {
+        NSDateFormatter *formatter = [[NSDateFormatter alloc]init];
+        formatter.dateFormat = @"yyyyMMddHHmmss";
+        NSString *str = [formatter stringFromDate:[NSDate date]];
+        NSString *fileName = [NSString stringWithFormat:@"%@.mp3",str];
+        [formData appendPartWithFileData:resultMp3Data name:@"file" fileName:fileName mimeType:@"audio/mpeg3" ];
+        
+    } success:^(id responseObj) {
+        __strong typeof(self) strongSelf = weakSelf;
+        
+        NSDictionary *dict = nil;
+        if ([responseObj isKindOfClass:[NSData class]]) {
+            
+            dict = (NSDictionary*)[responseObj objectFromJSONData];
+            if (dict == nil) {
+                dict = [responseObj objectFromJSONDataWithParseOptions:JKParseOptionNone];
+            }
+            if (dict == nil) {
+                dict = [responseObj objectFromJSONDataWithParseOptions:JKParseOptionStrict];
+            }
+            if (dict == nil) {
+                dict = [responseObj objectFromJSONDataWithParseOptions:JKParseOptionComments];
+            }
+            if (dict == nil) {
+                dict = [responseObj objectFromJSONDataWithParseOptions:JKParseOptionUnicodeNewlines];
+            }
+            if (dict == nil) {
+                dict = [responseObj objectFromJSONDataWithParseOptions:JKParseOptionLooseUnicode];
+            }
+            if (dict == nil) {
+                dict = [responseObj objectFromJSONDataWithParseOptions:JKParseOptionPermitTextAfterValidJSON];
+            }
+            if (dict == nil) {
+                dict = [responseObj objectFromJSONDataWithParseOptions:JKParseOptionValidFlags];
+            }
+            if (dict == nil) {
+                dict = [NSJSONSerialization JSONObjectWithData:responseObj options:NSJSONReadingAllowFragments error:nil];
+            }
+            
+        }else{
+            dict = (NSDictionary*)responseObj;
+        }
+        DDLog(@"%@",dict);
+        if (dict != nil) {
+            if ([dict[@"Code"] integerValue] == 200) {
+                [self audioAlarmWithAudioPath:dict[@"Data"][@"filePath"]];
+            }else{
+                DLHideLoadAnimation;
+                [SVProgressHUD showErrorWithStatus:dict[@"Msg"]];
+            }
+        }else{
+            [SVProgressHUD dismiss];
+            [SVProgressHUD showErrorWithStatus:@"录音发送失败"];
+            [strongSelf.view makeToast:@"录音发送失败"];
+        }
+        
+    } failure:^(NSError *error) {
+        __strong typeof(self) strongSelf = weakSelf;
+        
+        [SVProgressHUD dismiss];
+        [SVProgressHUD showErrorWithStatus:@"服务器不给力,请稍后重试~~"];
+    }];
+    
+}
+
+- (void)audioAlarmWithAudioPath:(NSString*)path
+{
+    if (self.isLocated == NO) {
+        [SVProgressHUD showInfoWithStatus:@"请先定位"];
+        return;
+    }
+    self.longitude = @"106.6723";
+    self.latitude = @"26.4299";
+    NSDictionary *params = @{@"userID":[APUserData sharedUserData].userID,@"messageType":@"voiceAlarm",@"message":path,@"longitude":self.longitude,@"latitude":self.latitude};
+    __weak typeof(self) weakSelf = self;
+    
+    [APIManager audioAlarmWithParams:params success:^(NSDictionary *dict) {
+        __strong typeof(self) strongSelf = weakSelf;
+        [self alarmSuccessMethod];
+    } dataError:^(NSInteger code, NSString *message) {
+        __strong typeof(self) strongSelf = weakSelf;
+        [strongSelf.view makeToast:message];
+        //弹出报警电话
+        if (code == 422) {
+#warning 这里应该弹出拨打110电话的界面
+            [self alarmSuccessMethod];
+//            [strongSelf.view phoneCallWithPhone:@"110"];
+        }
+    } failure:^(NSError *error) {
+        __strong typeof(self) strongSelf = weakSelf;
+        [strongSelf.view makeToast:@"服务器不给力，请稍后重试~~"];
+    }];
+}
+
+- (void)alarmQuicklySend
+{
+    //    NSDictionary *params = @{@"alarmCall":@{@"userID":[APUserData sharedUserData].userID,@"userName":[APUserData sharedUserData].userName,@"messageType":@"oneKeyAlarm",@"adressName":[APUserData sharedUserData].address,@"adressID":@"",@"longitude":@"",@"latitude":@""}};
+    if (self.isLocated == NO) {
+        [SVProgressHUD showInfoWithStatus:@"请先定位"];
+        return;
+    }
+    self.longitude = @"106.6723";
+    self.latitude = @"26.4299";
+    NSDictionary *params = @{@"alarmCall":@{
+                                     @"userID":[APUserData sharedUserData].userID,
+                                     @"messageType":@"oneKeyAlarm",
+                                     @"adressName":[APUserData sharedUserData].address,
+                                     @"longitude":self.longitude,
+                                     @"latitude":self.latitude}};
+    __weak typeof(self) weakSelf = self;
+    
+    [APIManager alarmQuicklyWithParams:params success:^(NSDictionary *dict) {
+        __strong typeof(self) strongSelf = weakSelf;
+        
+    } dataError:^(NSInteger code, NSString *message) {
+        __strong typeof(self) strongSelf = weakSelf;
+        [strongSelf.view makeToast:message];
+    } failure:^(NSError *error) {
+        __strong typeof(self) strongSelf = weakSelf;
+        [strongSelf.view makeToast:@"服务器不给力，请稍后重试~~"];
+    }];
+}
+
+#pragma mark - help 
+
+- (void)alarmSuccessMethod
+{
+    //将小红灯变亮，需要通知
+    [[NSNotificationCenter defaultCenter]postNotificationName:AlarmSuccessNotification object:nil];
+    //按钮变黄色，显示文字等待中
+    self.alarmButton.selected = YES;
+    self.alarmButton.userInteractionEnabled = NO;
+    
+    
+}
+
+#pragma mark - button action
+
+- (void)alarmButtonTap {
+    
+    MessageToolView *toolView = [[MessageToolView alloc]init];
+    toolView.delegate = self;
+    [toolView show];
+    
+}
+
+- (void)alarmQuickly
+{
+    self.alarmQuickView.hidden = NO;
+    [self.alarmQuickView didAlarmQuicklyBlock:^{
+        [self alarmQuicklySend];
+    }];
+    
+}
+@end

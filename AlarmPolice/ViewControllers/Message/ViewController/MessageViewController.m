@@ -1,0 +1,465 @@
+//
+//  MessageViewController.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/8.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "MessageViewController.h"
+#import "MessageCell.h"
+#import "WDScrollView.h"
+#import "NewsModel.h"
+#import "MessageDetailViewController.h"
+
+
+@interface MessageViewController ()<UITableViewDelegate, UITableViewDataSource>
+@property (weak, nonatomic) IBOutlet UIButton *noticeButton;
+@property (weak, nonatomic) IBOutlet UIButton *newsButton;
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
+
+@property (strong, nonatomic) NSMutableArray *imageTitleArr;
+
+@property (assign, nonatomic) NSInteger currentPage;
+
+@property (strong, nonatomic) NewsModel *model;
+
+@property (strong, nonatomic) WDScrollView *scrollView;
+
+@property (strong, nonatomic) UIButton *currentCollButton;
+
+- (IBAction)buttonClicked:(id)sender;
+@end
+
+@implementation MessageViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    self.navigationController.navigationBar.translucent = NO;
+    
+    self.view.backgroundColor = [UIColor redColor];
+    if ([self.tableView respondsToSelector:@selector(setLayoutMargins:)]) {
+        [self.tableView setLayoutMargins:UIEdgeInsetsZero];
+    }
+    self.tableView.separatorInset = UIEdgeInsetsMake(-0.5, 12, -0.5, 0);
+    self.tableView.separatorColor = [[UIColor blackColor] colorWithAlphaComponent:0.2];
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    
+    //    self.imageTitleArr = @[@"武警排爆手：70斤排爆服只能保证留全尸",@"日媒：美将不再容忍中国崛起",@"上海一粮油市场起火 无人受伤"];
+    //    self.tableView.tableHeaderView = [self makeTableViewHeader];
+    
+    self.tableView.mj_header = [MJRefreshNormalHeader headerWithRefreshingTarget:self refreshingAction:@selector(headerRereshing)];
+    self.tableView.mj_footer = [MJRefreshBackNormalFooter footerWithRefreshingTarget:self refreshingAction:@selector(footerRereshing)];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    [self.tableView.mj_header beginRefreshing];
+}
+
+
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (UIColor *)navigaitonBarBackgroundColor
+{
+    return [UIColor whiteColor];
+}
+
+#pragma mark - private
+
+- (void)headerRereshing
+{
+    self.currentPage = 1;
+    if (self.newsButton.selected) {
+        [self requestNews];
+    }else{
+        //
+        [self requestNotice];
+    }
+}
+
+- (void)footerRereshing
+{
+    self.currentPage++;
+    if (self.newsButton.selected) {
+        [self requestNews];
+    }else{
+        //
+        [self requestNotice];
+    }
+    
+}
+
+#pragma mark - UITableViewDelegate, UITableViewDataSource
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    id news = self.infoDataArray[indexPath.row];
+    MessageDetailViewController *detailVC = MainStoryBoard(@"msgDetailIdentifier");
+    detailVC.url = (NSString*)[news url];
+    detailVC.isCollected = ![[news collectState] isEqualToString:@"noCollect"];
+    detailVC.newsID = [news newsID];
+    [self.navigationController pushViewController:detailVC animated:YES];
+    
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return self.infoDataArray.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *cellIdentifier = @"messageCellIdentifier";
+    MessageCell *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier];
+    if (cell == nil) {
+        cell = [[[NSBundle mainBundle]loadNibNamed:@"MessageCell" owner:self options:nil]lastObject];
+    }
+    
+    
+    if (self.noticeButton.selected) {
+        NoFocusandnotice *news = self.infoDataArray[indexPath.row];
+        [cell.mImgView sd_setImageWithURL:[NSURL URLWithString:news.savepath] placeholderImage:[UIImage imageNamed:@"small_default"]];
+        cell.mTitleLabel.text = news.title;
+        cell.mDescripeLabel.text = news.summary;
+        if ([news.collectState isEqualToString:@"noCollect"] == NO) {
+            //收藏
+            cell.mCollectButton.selected = YES;
+        }else{
+            cell.mCollectButton.selected = NO;
+        }
+        cell.mCollectButton.tag = 1000 + indexPath.row;
+        [cell.mCollectButton addTarget:self action:@selector(collectionButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+        
+    }else{
+        NoFocusandnews *news = self.infoDataArray[indexPath.row];
+        [cell.mImgView sd_setImageWithURL:[NSURL URLWithString:news.savepath] placeholderImage:[UIImage imageNamed:@"small_default"]];
+        cell.mTitleLabel.text = news.title;
+        cell.mDescripeLabel.text = news.summary;
+        if ([news.collectState isEqualToString:@"noCollect"] == NO) {
+            //收藏
+            cell.mCollectButton.selected = YES;
+        }else{
+            cell.mCollectButton.selected = NO;
+        }
+        cell.mCollectButton.tag = 1000 + indexPath.row;
+        [cell.mCollectButton addTarget:self action:@selector(collectionButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+        
+    }
+    
+    
+    return cell;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 90;
+}
+
+
+#pragma mark - heler
+
+- (UIView*)makeTableViewHeaderWithImages:(NSArray*)images
+{
+    if (images == nil || images.count == 0) {
+        return nil;
+    }
+    CGFloat height = 200 * Screen_Width / 375.0;
+    UIView *view = [[UIView alloc]initWithFrame:CGRectMake(0, 0, Screen_Width, height + 32)];
+    
+    if (self.scrollView == nil) {
+        //轮播区
+        WDScrollView *scrollView = [[WDScrollView alloc]initWithFrame:CGRectMake(0, 0, Screen_Width, height) andLayout:WDScrollViewLayoutTitleBottomLeftPageControlBottomRight];
+        scrollView.shouldHiddenAllOthersExceptImageContent = YES;
+        scrollView.imageArr = images;
+        scrollView.hidePageControlWhenSinglePage = YES;
+        [view addSubview:scrollView];
+        self.scrollView = scrollView;
+    }else{
+        self.scrollView.imageArr = images;
+        [view addSubview:self.scrollView];
+    }
+
+    
+    __weak typeof(self) weakSelf = self;
+    [self.scrollView didClickedIndexBlock:^(NSInteger index) {
+        __strong typeof(self) strongSelf = weakSelf;
+        id focusNews = strongSelf.model.Data.yesFocusAndNews[index];
+        if (strongSelf.noticeButton.selected) {
+            focusNews = strongSelf.model.Data.yesFocusAndNotice[index];
+        }
+        MessageDetailViewController *detailVC = MainStoryBoard(@"msgDetailIdentifier");
+        detailVC.url = (NSString*)[focusNews url];
+        detailVC.isCollected = ![[focusNews collectState] isEqualToString:@"noCollect"];
+        detailVC.newsID = [focusNews newsID];
+        [strongSelf.navigationController pushViewController:detailVC animated:YES];
+    }];
+    
+    NSAssert(self.scrollView.imageArr.count == self.imageTitleArr.count, @"轮播图区标题数量和图片数量不一致");
+    
+    UILabel *label = [[UILabel alloc]initWithFrame:CGRectMake(12, self.scrollView.maxY, 0, 30)];
+    label.font = [UIFont systemFontOfSize:14.0];
+    label.text = self.imageTitleArr[0];
+    [view addSubview:label];
+    
+    UIPageControl *pageControl = [[UIPageControl alloc]initWithFrame:CGRectMake(0, self.scrollView.maxY, 0, 30)];
+    pageControl.pageIndicatorTintColor = [[UIColor blackColor] colorWithAlphaComponent:0.2];
+    pageControl.currentPageIndicatorTintColor = [[UIColor blackColor] colorWithAlphaComponent:0.8];
+    [view addSubview:pageControl];
+    pageControl.numberOfPages = self.imageTitleArr.count;
+    
+    CGSize pageControlSize = [pageControl sizeForNumberOfPages:self.imageTitleArr.count];
+    pageControl.frame = CGRectMake(view.width - pageControlSize.width - 10, self.scrollView.maxY + 14, pageControlSize.width, 4);
+    label.frame = CGRectMake(12, self.scrollView.maxY, Screen_Width - pageControlSize.width - 12 - 10, 30);
+    
+    [self.scrollView addListenerWithCurrentPageBlock:^(NSInteger pageIndex) {
+        __strong typeof(self) strongSelf = weakSelf;
+        
+        //有时会出现数组越界
+        if(strongSelf.imageTitleArr != nil && strongSelf.imageTitleArr.count>0&& pageIndex < strongSelf.imageTitleArr.count){
+            label.text = strongSelf.imageTitleArr[pageIndex];
+            pageControl.currentPage = pageIndex;
+        }
+            
+        
+    }];
+    
+    UIView *horlineView = [[UIView alloc]initWithFrame:CGRectMake(0, label.maxY, view.width, 1)];
+    horlineView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.2];
+    [view addSubview:horlineView];
+    
+    return view;
+}
+
+#pragma mark - button action
+
+- (IBAction)buttonClicked:(id)sender {
+    if ([sender isEqual:self.noticeButton] && self.noticeButton.selected == NO ) {
+        self.noticeButton.selected = YES;
+        self.newsButton.selected = NO;
+        
+    }
+    if ([sender isEqual:self.newsButton] && self.newsButton.selected == NO) {
+        self.newsButton.selected = YES;
+        self.noticeButton.selected = NO;
+        
+    }
+    [self.tableView.mj_header beginRefreshing];
+}
+
+
+- (void)collectionButtonClicked:(UIButton*)button
+{
+    self.currentCollButton = button;
+    NSString *newsID = [self.infoDataArray[button.tag - 1000] newsID];
+    if (button.selected) {
+        //取消收藏
+        [self cancelCollWithID:newsID];
+    }else{
+        //收藏
+        [self collectionWithID:newsID];
+    }
+}
+
+
+#pragma mark - HTTP
+
+//新闻
+- (void)requestNews
+{
+    NSDictionary *params = @{@"tokenID":UUID,@"page":@(self.currentPage)};
+    __weak typeof(self) weakSelf = self;
+    [APIManager newsWithParams:params success:^(NSDictionary *dict) {
+        __strong typeof(self) strongSelf = weakSelf;
+        
+        NewsModel *model = [NewsModel mj_objectWithKeyValues:dict];
+        strongSelf.model = model;
+        if (strongSelf.currentPage > 1) {
+            //加载多页
+            [strongSelf.tableView.mj_footer endRefreshing];
+            if (model.Data.nofocusAndNews == nil || model.Data.nofocusAndNews.count == 0) {
+                [strongSelf.view showWithMessage:@"没有更多的数据"];
+                strongSelf.currentPage--;
+            }else{
+                [strongSelf.infoDataArray addObjectsFromArray:model.Data.nofocusAndNews];
+            }
+            
+        }else{
+            [strongSelf.tableView.mj_header endRefreshing];
+            [strongSelf.infoDataArray removeAllObjects];
+            //非轮播区
+            [strongSelf.infoDataArray addObjectsFromArray:model.Data.nofocusAndNews];
+            
+            //轮播区
+            //取出标题数据
+            [strongSelf.imageTitleArr removeAllObjects];
+            //取出图片数据
+            NSMutableArray *images = [NSMutableArray array];
+            
+            if (model.Data.yesFocusAndNews != nil && model.Data.yesFocusAndNews.count > 0) {
+                for (Yesfocusandnews *newsModel in model.Data.yesFocusAndNews) {
+                    NSString *title = [newsModel.title copy];
+                    title = title == nil?@"":title;
+                    [strongSelf.imageTitleArr addObject:title];
+                    NSString *imageURL = [newsModel.savepath copy];
+                    imageURL = imageURL == nil?@"":imageURL;
+                    [images addObject:imageURL];
+                    
+                }
+                strongSelf.tableView.tableHeaderView =  [self makeTableViewHeaderWithImages:images];
+            }
+        }
+        [strongSelf.tableView reloadData];
+    } dataError:^(NSInteger code, NSString *message) {
+        __strong typeof(self) strongSelf = weakSelf;
+        [strongSelf.view showWithMessage:message];
+        [strongSelf.tableView.mj_header endRefreshing];
+        [strongSelf.tableView.mj_footer endRefreshing];
+        [strongSelf.infoDataArray removeAllObjects];
+        [strongSelf.tableView reloadData];
+    } failure:^(NSError *error) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APShowServiceError;
+        [strongSelf.tableView.mj_header endRefreshing];
+        [strongSelf.tableView.mj_footer endRefreshing];
+        [strongSelf.infoDataArray removeAllObjects];
+        [strongSelf.tableView reloadData];
+    }];
+}
+
+- (void)requestNotice
+{
+    NSDictionary *params = @{@"tokenID":UUID,@"page":@(self.currentPage)};
+    __weak typeof(self) weakSelf = self;
+    [APIManager noticeWithParams:params success:^(NSDictionary *dict) {
+        __strong typeof(self) strongSelf = weakSelf;
+        NewsModel *model = [NewsModel mj_objectWithKeyValues:dict];
+        strongSelf.model = model;
+        if (strongSelf.currentPage > 1) {
+            //加载多页
+            [strongSelf.tableView.mj_footer endRefreshing];
+            if (model.Data.noFocusAndNotice == nil || model.Data.noFocusAndNotice.count == 0) {
+                [strongSelf.view showWithMessage:@"没有更多的数据"];
+                strongSelf.currentPage--;
+            }else{
+                [strongSelf.infoDataArray addObjectsFromArray:model.Data.noFocusAndNotice];
+            }
+            
+        }else{
+            [strongSelf.tableView.mj_header endRefreshing];
+            [strongSelf.infoDataArray removeAllObjects];
+            //非轮播区
+            [strongSelf.infoDataArray addObjectsFromArray:model.Data.noFocusAndNotice];
+            
+            //轮播区
+            //取出标题数据
+            [strongSelf.imageTitleArr removeAllObjects];
+            //取出图片数据
+            NSMutableArray *images = [NSMutableArray array];
+            
+            for (Yesfocusandnotice *newsModel in model.Data.yesFocusAndNotice) {
+                NSString *title = [newsModel.title copy];
+                title = title == nil?@"":title;
+                [strongSelf.imageTitleArr addObject:title];
+                NSString *imageURL = [newsModel.savepath copy];
+                imageURL = imageURL == nil?@"":imageURL;
+                [images addObject:imageURL];
+            }
+            strongSelf.tableView.tableHeaderView =  [self makeTableViewHeaderWithImages:images];
+            
+        }
+        [strongSelf.tableView reloadData];
+    } dataError:^(NSInteger code, NSString *message) {
+        __strong typeof(self) strongSelf = weakSelf;
+        [strongSelf.view showWithMessage:message];
+        [strongSelf.tableView.mj_header endRefreshing];
+        [strongSelf.tableView.mj_footer endRefreshing];
+        [strongSelf.infoDataArray removeAllObjects];
+        [strongSelf.tableView reloadData];
+    } failure:^(NSError *error) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APShowServiceError;
+        [strongSelf.tableView.mj_header endRefreshing];
+        [strongSelf.tableView.mj_footer endRefreshing];
+        [strongSelf.infoDataArray removeAllObjects];
+        [strongSelf.tableView reloadData];
+    }];
+    
+}
+
+- (void)collectionWithID:(NSString*)newsID
+{
+    NSDictionary *params = @{@"tokenID":UUID,@"newsID":newsID?newsID:@""};
+    __weak typeof(self) weakSelf = self;
+    [self.view showWithStatus:@"收藏中……"];
+    [APIManager collectionWithParams:params success:^(NSDictionary *dict) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        [strongSelf.view showWithMessage:@"已收藏"];
+        
+        NSInteger index = strongSelf.currentCollButton.tag - 1000;
+        strongSelf.currentCollButton.selected = YES;
+        id orginalModel = strongSelf.infoDataArray[index];
+        [orginalModel setCollectState:@"okCollect"];
+        
+    } dataError:^(NSInteger code, NSString *message) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        [strongSelf.view showWithMessage:message];
+        
+    } failure:^(NSError *error) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        APShowServiceError;
+    }];
+}
+
+- (void)cancelCollWithID:(NSString*)newsID
+{
+    NSDictionary *params = @{@"tokenID":UUID,@"newsID":newsID?newsID:@""};
+    __weak typeof(self) weakSelf = self;
+    [self.view showWithStatus:@"取消中……"];
+    [APIManager cancelCollWithParams:params success:^(NSDictionary *dict) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        [strongSelf.view showWithMessage:@"已取消"];
+        NSInteger index = strongSelf.currentCollButton.tag - 1000;
+        strongSelf.currentCollButton.selected = NO;
+        id orginalModel = strongSelf.infoDataArray[index];
+        [orginalModel setCollectState:@"noCollect"];
+        
+    } dataError:^(NSInteger code, NSString *message) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        [strongSelf.view showWithMessage:message];
+        
+    } failure:^(NSError *error) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        APShowServiceError;
+    }];
+}
+
+#pragma mark - getter
+
+- (NSMutableArray *)imageTitleArr
+{
+    if (_imageTitleArr == nil) {
+        _imageTitleArr = [NSMutableArray array];
+    }
+    return _imageTitleArr;
+}
+
+@end

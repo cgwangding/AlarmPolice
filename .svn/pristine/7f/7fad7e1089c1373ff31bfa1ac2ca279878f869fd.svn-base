@@ -1,0 +1,16 @@
+//
+//  DLInterfaceDefines.h
+//  DuoLiFarm
+//
+//  Created by AD-iOS on 15/5/13.
+//  Copyright (c) 2015年 wangding. All rights reserved.
+//
+
+
+#define BaseInterfaceURL                  @"http://172.16.100.56:8080"
+
+//注册
+#define APRegistInterface              @"/DiDiAlarm/loginApp.do?p=register"
+
+//发送手机验证码
+#define APSendVerifyCodeInterface              @"/DiDiAlarm/loginApp.do?p=regsiterByPhone"

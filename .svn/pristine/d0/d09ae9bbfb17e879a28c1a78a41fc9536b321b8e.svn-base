@@ -1,0 +1,68 @@
+//
+//  CollectionModel.h
+//  AlarmPolice
+//
+//  Created by AD-iOS on 16/1/7.
+//  Copyright © 2016年 Adinnet. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+
+@class CollectData,Model;
+@interface CollectionModel : NSObject
+
+@property (nonatomic, copy) NSString *Msg;
+
+@property (nonatomic, copy) NSString *IsSuccess;
+
+@property (nonatomic, copy) NSString *Code;
+
+@property (nonatomic, strong) CollectData *Data;
+
+@end
+@interface CollectData : NSObject
+
+@property (nonatomic, strong) NSArray<Model *> *model;
+
+@end
+
+@interface Model : NSObject
+
+@property (nonatomic, copy) NSString *state;
+
+@property (nonatomic, copy) NSString *collectState;
+
+@property (nonatomic, copy) NSString *userID;
+
+@property (nonatomic, copy) NSString *realName;
+
+@property (nonatomic, copy) NSString *pushNum;
+
+@property (nonatomic, copy) NSString *infoType;
+
+@property (nonatomic, copy) NSString *context;
+
+@property (nonatomic, copy) NSString *pushStatus;
+
+@property (nonatomic, copy) NSString *title;
+
+@property (nonatomic, copy) NSString *summary;
+
+@property (nonatomic, copy) NSString *createTime;
+
+@property (nonatomic, copy) NSString *publishTime;
+
+@property (nonatomic, copy) NSString *publishState;
+
+@property (nonatomic, copy) NSString *newsID;
+
+@property (nonatomic, copy) NSString *focusStatus;
+
+@property (nonatomic, copy) NSString *updateTime;
+
+@property (copy, nonatomic) NSString *files;
+
+@property (copy, nonatomic) NSString *url;
+
+@end
+

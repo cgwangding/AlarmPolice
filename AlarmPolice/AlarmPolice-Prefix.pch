@@ -1,0 +1,16 @@
+//
+//  AlarmPolice-Prefix.pch
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/1.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#ifndef AlarmPolice_Prefix_pch
+#define AlarmPolice_Prefix_pch
+
+// Include any system framework and library headers here that should be included in all compilation units.
+// You will also need to set the Prefix Header build setting of one or more of your targets to reference this file.
+#import "AP.h"
+
+#endif /* AlarmPolice_Prefix_pch */

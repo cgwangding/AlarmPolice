@@ -1,0 +1,13 @@
+//
+//  AlarmStateManager.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 16/1/15.
+//  Copyright © 2016年 Adinnet. All rights reserved.
+//
+
+#import "AlarmStateManager.h"
+
+@implementation AlarmStateManager
+
+@end

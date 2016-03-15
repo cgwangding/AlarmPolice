@@ -1,0 +1,54 @@
+//
+//  AlarmViewController.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/8.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "AlarmViewController.h"
+#import "MessageToolView.h"
+
+@interface AlarmViewController ()<BMKMapViewDelegate>
+@property (weak, nonatomic) IBOutlet BMKMapView *mapView;
+@property (weak, nonatomic) IBOutlet UIButton *alarmButton;
+
+- (IBAction)alarmButtonClicked:(id)sender;
+@end
+
+@implementation AlarmViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    [self.mapView viewWillAppear];
+    self.mapView.delegate = self;
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    [self.mapView viewWillDisappear];
+    self.mapView.delegate = nil;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+
+#pragma mark - button action
+
+- (IBAction)alarmButtonClicked:(id)sender {
+    MessageToolView *toolView = [MessageToolView sharedToolView];
+    [toolView show];
+    
+}
+@end

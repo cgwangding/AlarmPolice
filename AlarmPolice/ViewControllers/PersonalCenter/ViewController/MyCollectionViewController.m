@@ -1,0 +1,158 @@
+
+//
+//  MyCollectionViewController.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/21.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "MyCollectionViewController.h"
+#import "NewsCollectionCell.h"
+#import "CollectionModel.h"
+#import "MessageDetailViewController.h"
+
+@interface MyCollectionViewController ()<UITableViewDelegate, UITableViewDataSource>
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
+
+@end
+
+@implementation MyCollectionViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    self.title = @"我的收藏";
+    UIView *view = [[UIView alloc]initWithFrame:CGRectMake(0, 0, Screen_Width, 10)];
+    UIView *line = [[UIView alloc]initWithFrame:CGRectMake(0, 9, view.width, 1)];
+    line.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.2];
+    [view addSubview:line];
+    self.tableView.tableHeaderView = view;
+    self.tableView.separatorStyle = UITableViewCellSelectionStyleNone;
+    
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    [self requestMyCollection];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - UITableViewDelegate, UITableViewDataSource
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    Model *model = self.infoDataArray[indexPath.row];
+    MessageDetailViewController *detailVC = MainStoryBoard(@"msgDetailIdentifier");
+    detailVC.url = (NSString*)[model url];
+    detailVC.isCollected = ![[model collectState] isEqualToString:@"noCollect"];
+    detailVC.newsID = [model newsID];
+    [self.navigationController pushViewController:detailVC animated:YES];
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return self.infoDataArray.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *cellIdentifier = @"newsCellIdentifier";
+    NewsCollectionCell *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier];
+    if (cell == nil) {
+        cell = [[[NSBundle mainBundle]loadNibNamed:@"NewsCollectionCell" owner:self options:nil] lastObject];
+    }
+    Model *model = self.infoDataArray[indexPath.row];
+    [cell.newsImgView sd_setImageWithURL:[NSURL URLWithString:model.savepath] placeholderImage:[UIImage imageNamed:@"small_default"]];
+    cell.newsTitleLabel.text = model.title;
+    cell.newsDetailLabel.text = model.summary;  
+    
+    //添加左滑删除功能
+    cell.swipeBackgroundColor = [UIColor clearColor];
+    
+    cell.rightSwipeSettings.transition = MGSwipeTransitionStatic;
+    MGSwipeButton *button = [MGSwipeButton buttonWithTitle:@"删除" icon:nil backgroundColor:[UIColor colorWithHex:0xF7315F] callback:^BOOL(MGSwipeTableCell *sender) {
+        //直接删除- 取消收藏
+        [self cancelCollWithID:model.newsID];
+        
+        return YES;
+    }];
+    
+    button.width = 54;
+    button.backgroundColor = [UIColor colorWithHex:0xDE4747];
+    button.titleLabel.font = [UIFont systemFontOfSize:14];
+    cell.rightButtons = @[button];
+
+    return cell;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 90;
+}
+
+#pragma mark - HTTP
+
+- (void)requestMyCollection
+{
+    NSDictionary *params = @{@"tokenID":UUID};
+    __weak typeof(self) weakSelf = self;
+    APShowLoading;
+    [APIManager myCollectionWithParams:params success:^(NSDictionary *dict) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        [strongSelf.infoDataArray removeAllObjects];   
+        CollectionModel *model = [CollectionModel mj_objectWithKeyValues:dict];
+        [strongSelf.infoDataArray addObjectsFromArray:model.Data.model];
+        [strongSelf.tableView reloadData];
+        
+    } dataError:^(NSInteger code, NSString *message) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        [strongSelf.view showWithMessage:message];
+        [strongSelf.infoDataArray removeAllObjects];
+        [strongSelf.tableView reloadData];
+    } failure:^(NSError *error) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        APShowServiceError;
+        
+    }];
+}
+
+- (void)cancelCollWithID:(NSString*)newsID
+{
+    NSDictionary *params = @{@"tokenID":UUID,@"newsID":newsID};
+    __weak typeof(self) weakSelf = self;
+    [self.view showWithStatus:@"取消中……"];
+    [APIManager cancelCollWithParams:params success:^(NSDictionary *dict) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        [strongSelf.view showWithMessage:@"已删除"];
+        [self performSelector:@selector(requestMyCollection) withObject:nil afterDelay:0.75];
+        
+    } dataError:^(NSInteger code, NSString *message) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        [strongSelf.view showWithMessage:message];
+        
+    } failure:^(NSError *error) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        APShowServiceError;
+    }];
+}
+
+
+@end

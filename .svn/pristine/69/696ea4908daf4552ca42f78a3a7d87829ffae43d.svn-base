@@ -1,0 +1,131 @@
+//
+//  FEUserData.m
+//  FinanceExamination
+//
+//  Created by AD-iOS on 15/7/29.
+//  Copyright (c) 2015年 Adinnet. All rights reserved.
+//
+
+#import "CAUserData.h"
+
+@implementation CAUserData
+@synthesize online = _online,mid = _mid,easeMobUserName = _easeMobUserName,easeMobPassword = _easeMobPassword, easeOnline  = _easeOnline, headerURL = _headerURL,nickName = _nickName,hasAllPersonalInfo = _hasAllPersonalInfo;
+
++ (instancetype)sharedUserData
+{
+    static CAUserData *user = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        user = [[CAUserData alloc]init];
+    });
+    return user;
+}
+
+- (void)setOnline:(BOOL)online
+{
+    _online = online;
+    default_add_Bool(_online, @"online");
+    default_synchronize;
+    if (!online) {
+        self.mid = @"";
+        self.easeOnline = NO;
+    }
+}
+
+- (BOOL)isOnline
+{
+    return default_get_Bool(@"online");
+}
+
+- (void)setMid:(NSString *)mid
+{
+    _mid = [mid copy];
+    default_add_Object(mid, @"mid");
+    default_synchronize;
+}
+
+- (NSString *)mid
+{
+    return default_get_Object(@"mid");
+}
+
+- (void)setHasAllPersonalInfo:(BOOL)hasAllPersonalInfo
+{
+    _hasAllPersonalInfo = hasAllPersonalInfo;
+    default_add_Bool(hasAllPersonalInfo, @"hasAllPersonalInfo");
+    default_synchronize;
+}
+
+- (BOOL)hasAllPersonalInfo
+{
+    return default_get_Bool(@"hasAllPersonalInfo");
+}
+
+
+- (NSString *)headerURL
+{
+    return default_get_Object(@"headerURL");
+}
+
+- (void)setHeaderURL:(NSString *)headerURL
+{
+    _headerURL = [headerURL copy];
+    default_add_Object(_headerURL, @"headerURL");
+    default_synchronize;
+}
+
+- (NSString *)nickName
+{
+    return default_get_Object(@"nickName");
+}
+
+- (void)setNickName:(NSString *)nickName
+{
+    _nickName = nickName;
+    default_add_Object(_nickName, @"nickName");
+    default_synchronize;
+}
+
+- (void)setEaseOnline:(BOOL)easeOnline
+{
+    _easeOnline = easeOnline;
+    default_add_Bool(_easeOnline, @"easeOnline");
+    default_synchronize;
+    if (easeOnline == NO) {
+        self.easeMobUserName = @"";
+        self.easeMobPassword = @"";
+    }
+}
+
+
+
+- (BOOL)isEaseOnline
+{
+    return default_get_Bool(@"easeOnline");
+}
+
+- (void)setEaseMobUserName:(NSString *)easeMobUserName
+{
+    _easeMobUserName = [easeMobUserName copy];
+    default_add_Object(_easeMobUserName, @"easeMobUserName");
+    default_synchronize;
+}
+
+- (NSString *)easeMobUserName
+{
+    return default_get_Object(@"easeMobUserName");
+}
+
+- (void)setEaseMobPassword:(NSString *)easeMobPassword
+{
+    _easeMobPassword = [easeMobPassword copy];
+    default_add_Object(_easeMobPassword, @"easeMobPassword");
+    default_synchronize;
+}
+
+- (NSString *)easeMobPassword
+{
+    return default_get_Object(@"easeMobPassword");
+}
+
+@end

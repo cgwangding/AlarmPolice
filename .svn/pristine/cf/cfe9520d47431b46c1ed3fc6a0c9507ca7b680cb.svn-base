@@ -1,0 +1,116 @@
+//
+//  BaseTableViewController.m
+//  Tuchu
+//
+//  Created by Lingday on 15/4/20.
+//  Copyright (c) 2015年 Lingday. All rights reserved.
+//
+
+#import "BaseTableViewController.h"
+
+
+@interface BaseTableViewController ()<UIGestureRecognizerDelegate>
+
+@end
+
+@implementation BaseTableViewController
+@synthesize dataArray;
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    id target = self.navigationController.interactivePopGestureRecognizer.delegate;
+    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc]initWithTarget:target action:@selector(handleNavigationTransition:)];
+    pan.delegate = self;
+    [self.view addGestureRecognizer:pan];
+    
+    UIBarButtonItem *backItem = [[UIBarButtonItem alloc]initWithImage:[[UIImage imageNamed:@"back"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] style:UIBarButtonItemStylePlain target:self action:@selector(leftAction)];
+    backItem.imageInsets = UIEdgeInsetsMake(0, -15, 0, 0);
+    self.navigationItem.leftBarButtonItem = backItem;
+    self.leftBarButtonItem = backItem;
+    
+    UIBarButtonItem *rightItem = [[UIBarButtonItem alloc]initWithImage:[UIImage imageWithColor:[UIColor clearColor] size:CGSizeMake(20, 20)] style:UIBarButtonItemStylePlain target:self action:@selector(rightAction)];
+    self.navigationItem.rightBarButtonItem = rightItem;
+    self.rightBarButtonItem = rightItem;
+    
+    
+    [self setupNavBarShadowImage];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    [self.navigationController.navigationBar setTranslucent:NO];
+   
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    
+}
+
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
+{
+    if (self.navigationController.childViewControllers.count == 1) {
+        return NO;
+    }
+    return YES;
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
+{
+    CGPoint point = [touch locationInView:self.view];
+    if (point.x > 10) {
+        return NO;
+    }
+    return YES;
+}
+
+
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+-(void)leftAction
+{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)setupNavBarShadowImage
+{
+    [self.navigationController.navigationBar setShadowImage:[UIImage imageWithColor:[[UIColor lightGrayColor] colorWithAlphaComponent:0.2] size:CGSizeMake(Screen_Width, 1)]];
+}
+
+//右边按钮
+-(void)setupNavBarWithTitle:(NSString *)title
+{
+    
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithTitle:title
+                                                                             style:UIBarButtonItemStylePlain
+                                                                            target:self
+                                                                            action:@selector(rightAction)];
+    self.navigationController.navigationBar.tintColor = [UIColor clearColor];
+    
+}
+
+//右边按钮的图片
+- (void)setupNavBarWithimage:(NSString *)imageName
+{
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:imageName]
+                                                                              style:UIBarButtonItemStylePlain
+                                                                             target:self
+                                                                             action:@selector(rightAction)];
+    self.navigationController.navigationBar.tintColor = [UIColor clearColor];
+}
+
+- (void)rightAction
+{
+    
+}
+
+
+
+@end

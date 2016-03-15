@@ -1,0 +1,153 @@
+//
+//  BaseViewController.m
+//  Tuchu
+//
+//  Created by Lingday on 15/4/20.
+//  Copyright (c) 2015年 Lingday. All rights reserved.
+//
+
+#import "BaseViewController.h"
+#import "MJRefresh.h"
+
+@interface BaseViewController ()<UIGestureRecognizerDelegate>
+
+@property (nonatomic, strong) UIScrollView *scrollView;
+
+@property (strong, nonatomic) UILabel *resultMessageLabel;
+
+@end
+
+@implementation BaseViewController
+- (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    //    [self.navigationController.navigationBar setHidden:YES];
+    [self.navigationController.navigationBar setTranslucent:NO];
+
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    
+}
+
+-(NSMutableArray *)infoDataArray
+{
+    if (!_infoDataArray ) {
+        _infoDataArray =_infoDataArray =[[NSMutableArray alloc]init];
+    }
+    return _infoDataArray;
+}
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    //
+    //    [self setHidesBottomBarWhenPushed:YES];
+    
+    if ([self respondsToSelector:@selector(setEdgesForExtendedLayout:)])
+    {
+        [self setEdgesForExtendedLayout:UIRectEdgeNone];
+    }
+    
+    id target = self.navigationController.interactivePopGestureRecognizer.delegate;
+    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc]initWithTarget:target action:@selector(handleNavigationTransition:)];
+    pan.delegate = self;
+    [self.view addGestureRecognizer:pan];
+    
+    
+    UIBarButtonItem *backItem = [[UIBarButtonItem alloc]initWithImage:[[UIImage imageNamed:@"arrow_left"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] style:UIBarButtonItemStylePlain target:self action:@selector(leftAction)];
+    backItem.imageInsets = UIEdgeInsetsMake(0, -15, 0, 0);
+    self.navigationItem.leftBarButtonItem = backItem;
+    self.leftBarButtonItem = backItem;
+    
+    
+    //    UIBarButtonItem *negativeSpacer = [[UIBarButtonItem alloc]
+    //                                       initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace
+    //                                       target:nil action:nil];
+    //    negativeSpacer.width = -12;
+    //    self.navigationItem.leftBarButtonItems = [NSArray arrayWithObjects:negativeSpacer, backItem, nil];
+    
+    [self.navigationController.navigationBar setShadowImage:[UIImage imageWithColor:[[UIColor lightGrayColor] colorWithAlphaComponent:0.75] size:CGSizeMake(Screen_Width, 1)]];
+    
+    UIBarButtonItem *rightItem = [[UIBarButtonItem alloc]initWithImage:[UIImage imageWithColor:[UIColor clearColor] size:CGSizeMake(20, 20)] style:UIBarButtonItemStylePlain target:self action:@selector(rightAction)];
+    self.navigationItem.rightBarButtonItem = rightItem;
+    self.rightBarButtonItem = rightItem;
+    
+    self.view.backgroundColor = RGB(231, 231, 231);
+    
+    [self.view addSubview:self.resultMessageLabel];
+}
+
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
+{
+    if (self.navigationController.childViewControllers.count == 1) {
+        return NO;
+    }
+    return YES;
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
+{
+    CGPoint point = [touch locationInView:self.view];
+    if (point.x > 10) {
+        return NO;
+    }
+    return YES;
+}
+
+
+-(void)leftAction
+{
+    DDLog(@"left Action");
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)rightAction
+{
+    
+}
+
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)endRefresh
+{
+    
+}
+
+#pragma mark - Public method for control resultMessageLabel
+
+- (void)resultMessageHidden:(BOOL)hidden
+{
+    self.resultMessageLabel.hidden = hidden;
+    if (hidden) {
+        [self.view sendSubviewToBack:self.resultMessageLabel];
+    }else{
+        [self.view bringSubviewToFront:self.resultMessageLabel];
+    }
+}
+
+- (void)resetResultMessageFrame:(CGRect)frame
+{
+    self.resultMessageLabel.frame = frame;
+}
+
+#pragma mark - getter
+
+- (UILabel *)resultMessageLabel
+{
+    if (_resultMessageLabel == nil) {
+        _resultMessageLabel = [[UILabel alloc]initWithFrame:self.view.bounds];
+        _resultMessageLabel.textAlignment = NSTextAlignmentCenter;
+        _resultMessageLabel.textColor = [UIColor lightGrayColor];
+        _resultMessageLabel.font = [UIFont systemFontOfSize:30];
+        _resultMessageLabel.text = @"无结果";
+        _resultMessageLabel.hidden = YES;
+    }
+    return _resultMessageLabel;
+}
+
+@end

@@ -1,0 +1,181 @@
+//
+//  APIManager.m
+//  FinanceExamination
+//
+//  Created by AD-iOS on 15/7/29.
+//  Copyright (c) 2015年 Adinnet. All rights reserved.
+//
+
+#import "APIManager.h"
+#import "HTTPClient.h"
+
+@implementation APIManager
+
++ (void)cancel
+{
+    [[HTTPClient sharedClient]cancel];
+}
+
+//发送验证码
++ (void)sendVerifyCodeWithParams:(NSDictionary*)params success:(void(^)(NSDictionary* dict))success dataError:(void (^)(NSInteger code, NSString *message))error failure:(void (^)(NSError *error))failure
+{
+    [HTTPClient post:APSendVerifyCodeInterface bodyParams:params success:^(NSDictionary *dict) {
+        if (success) {
+            success(dict);
+        }
+    } dataError:^(NSInteger code, NSString *message) {
+        if (error) {
+            error(code,message);
+        }
+    } failure:^(NSError *error) {
+        if (failure) {
+            failure(error);
+        }
+    }];
+}
+
+//注册
++ (void)registWithParams:(NSDictionary*)params success:(void(^)(NSDictionary* dict))success dataError:(void (^)(NSInteger code, NSString *message))error failure:(void (^)(NSError *error))failure
+{
+    DLShowLoadAnimation;
+    [HTTPClient post:APRegistInterface bodyParams:params success:^(NSDictionary *dict) {
+        if (success) {
+            success(dict);
+        }
+    } dataError:^(NSInteger code, NSString *message) {
+        if (error) {
+            error(code,message);
+        }
+    } failure:^(NSError *error) {
+        if (failure) {
+            failure(error);
+        }
+    }];
+}
+
+
+//完善信息
++ (void)completeUserInfoWithParams:(NSDictionary*)params success:(void(^)(NSDictionary* dict))success dataError:(void (^)(NSInteger code, NSString *message))error failure:(void (^)(NSError *error))failure
+{
+    DLShowLoadAnimation;
+    [HTTPClient post:APCompeleteUserInfoInterface bodyParams:params success:^(NSDictionary *dict) {
+        if (success) {
+            success(dict);
+        }
+    } dataError:^(NSInteger code, NSString *message) {
+        if (error) {
+            error(code,message);
+        }
+    } failure:^(NSError *error) {
+        if (failure) {
+            failure(error);
+        }
+    }];
+}
+
+//获取地区信息
++ (void)areaInfoWithParams:(NSDictionary*)params success:(void(^)(NSDictionary* dict))success dataError:(void (^)(NSInteger code, NSString *message))error failure:(void (^)(NSError *error))failure
+{
+    DLShowLoadAnimation;
+    [HTTPClient post:APGetAreaInfoInterface bodyParams:params success:^(NSDictionary *dict) {
+        if (success) {
+            success(dict);
+        }
+    } dataError:^(NSInteger code, NSString *message) {
+        if (error) {
+            error(code,message);
+        }
+    } failure:^(NSError *error) {
+        if (failure) {
+            failure(error);
+        }
+    }];
+}
+
+//登录
++ (void)loginWithParams:(NSDictionary*)params success:(void(^)(NSDictionary* dict))success dataError:(void (^)(NSInteger code, NSString *message))error failure:(void (^)(NSError *error))failure
+{
+    DLShowLoadAnimation;
+    [HTTPClient post:APLoginInterface bodyParams:params success:^(NSDictionary *dict) {
+        if (success) {
+            success(dict);
+        }
+    } dataError:^(NSInteger code, NSString *message) {
+        if (error) {
+            error(code,message);
+        }
+    } failure:^(NSError *error) {
+        if (failure) {
+            failure(error);
+        }
+    }];
+}
+
+//一键报警
++ (void)alarmQuicklyWithParams:(NSDictionary*)params success:(void(^)(NSDictionary* dict))success dataError:(void (^)(NSInteger code, NSString *message))error failure:(void (^)(NSError *error))failure
+{
+    DLShowLoadAnimation;
+    [HTTPClient post:APAlarmQuicklyInterface bodyParams:params success:^(NSDictionary *dict) {
+        if (success) {
+            success(dict);
+        }
+    } dataError:^(NSInteger code, NSString *message) {
+        if (error) {
+            error(code,message);
+        }
+    } failure:^(NSError *error) {
+        if (failure) {
+            failure(error);
+        }
+    }];
+}
+
+//上传录音文件
++ (void)uploadVoiceFileWithBlock:(void (^)(id<AFMultipartFormData>formData))block success:(void (^)(id responseObj))success failure:(void (^)(NSError *error))failure
+{
+    [[HTTPClient sharedClient]post:APUploadVoiceInterface constructingBodyWithBlock:block success:success failure:failure];
+}
+
+//语音报警
++ (void)audioAlarmWithParams:(NSDictionary*)params success:(void(^)(NSDictionary* dict))success dataError:(void (^)(NSInteger code, NSString *message))error failure:(void (^)(NSError *error))failure
+{
+    [HTTPClient post:APAudioAlarmInterface bodyParams:params success:^(NSDictionary *dict) {
+        if (success) {
+            success(dict);
+        }
+    } dataError:^(NSInteger code, NSString *message) {
+        if (error) {
+            error(code,message);
+        }
+    } failure:^(NSError *error) {
+        if (failure) {
+            failure(error);
+        }
+    }];
+}
+
+//上传图片文件
++ (void)uploadImageFileWithBlock:(void (^)(id<AFMultipartFormData>formData))block success:(void (^)(id responseObj))success failure:(void (^)(NSError *error))failure
+{
+    [[HTTPClient sharedClient]post:APUploadImageInterface constructingBodyWithBlock:block success:success failure:failure];
+}
+
+//图片报警
++ (void)imageAlarmWithParams:(NSDictionary*)params success:(void(^)(NSDictionary* dict))success dataError:(void (^)(NSInteger code, NSString *message))error failure:(void (^)(NSError *error))failure
+{
+    [HTTPClient post:APImageAlarmInterface bodyParams:params success:^(NSDictionary *dict) {
+        if (success) {
+            success(dict);
+        }
+    } dataError:^(NSInteger code, NSString *message) {
+        if (error) {
+            error(code,message);
+        }
+    } failure:^(NSError *error) {
+        if (failure) {
+            failure(error);
+        }
+    }];
+}
+
+@end

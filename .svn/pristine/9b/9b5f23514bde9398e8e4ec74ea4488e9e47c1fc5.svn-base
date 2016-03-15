@@ -1,0 +1,199 @@
+//
+//  SpeekView.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/8.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "SpeekView.h"
+#import "RecordWaveView.h"
+#import "WDRecorder.h"
+
+@interface SpeekView ()<RecordWaveViewDelegate>
+@property (strong, nonatomic) UILabel *stateLabel;
+@property (strong, nonatomic) UIButton *speekButton;
+@property (strong, nonatomic) UILabel *tipLabel;
+
+@property (strong, nonatomic) UIImageView *deleteImgView;
+@property (strong, nonatomic) UIView *verticalLineView;
+
+@property (strong, nonatomic) RecordWaveView *recordWaveView;
+
+@property (strong, nonatomic) WDRecorder *recorder;
+
+@end
+
+@implementation SpeekView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    if (self = [super initWithFrame:frame]) {
+        [self setupWidget];
+    }
+    return self;
+}
+
+#pragma mark - RecordWaveViewDelegate
+
+- (void)recordDidTimedOut
+{
+    [self.recorder stopRecord];
+}
+
+#pragma mark - private method
+
+- (void)setupWidget
+{
+    [self addSubview:self.stateLabel];
+    [self addSubview:self.speekButton];
+    [self addSubview:self.tipLabel];
+    self.recorder = [[WDRecorder alloc]init];
+    __weak typeof(self) weakSelf = self;
+    [self.recorder addAudioPowerListener:^(float audioPower) {
+        __strong typeof(self) strongSelf = weakSelf;
+        [strongSelf.recordWaveView updateVoice:audioPower];
+    }];
+    [self.recorder didRecordFailed:^(NSError *error) {
+        
+    }];
+    [self.recorder didRecordSucceed:^(NSURL *filePath, NSTimeInterval recordTime) {
+        
+    }];
+}
+
+- (void)makeRecordUI
+{
+    [self.tipLabel removeFromSuperview];
+    if ([self.subviews containsObject:self.verticalLineView] == NO) {
+        [self addSubview: self.verticalLineView];
+    }
+    if ([self.subviews containsObject:self.deleteImgView] == NO) {
+        [self addSubview:self.deleteImgView];
+    }
+    [self bringSubviewToFront:self.speekButton];
+    self.stateLabel.text = @"松手发送";
+    if ([self.subviews containsObject:self.recordWaveView] == NO) {
+        [self addSubview:self.recordWaveView];
+        
+    }
+    
+}
+
+#pragma mark - button action
+
+- (void)speekButtonTouchDown:(UIButton*)button
+{
+    //开始录音
+    //1、出现录音界面
+    [self makeRecordUI];
+    //2、开始录音
+    [self.recorder startRecord];
+    [self.recordWaveView restartTimer];
+}
+
+- (void)speekButtonTouchUp:(UIButton*)button
+{
+    //结束录音
+    [self.recorder stopRecord];
+    [self.recordWaveView pauseTiemr];
+    self.stateLabel.text = @"按住说话";
+    
+}
+
+#pragma mark - tuoch event
+
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
+
+}
+
+- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
+    UITouch *touch = [touches anyObject];
+    CGPoint touchPoint = [touch locationInView:self];
+    DDLog(@"%@",NSStringFromCGPoint(touchPoint));
+    if (CGRectContainsPoint(self.deleteImgView.frame, touchPoint)) {
+        self.deleteImgView.highlighted = YES;
+    }else{
+        self.deleteImgView.highlighted = NO;
+    }
+}
+
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
+    if (self.deleteImgView.highlighted) {
+        //取消发送
+        
+    }
+}
+
+#pragma mark - getter
+
+- (UILabel *)stateLabel
+{
+    if (_stateLabel == nil) {
+        _stateLabel = [[UILabel alloc]initWithFrame:CGRectMake(0, 59, Screen_Width, 15)];
+        _stateLabel.textAlignment = NSTextAlignmentCenter;
+        _stateLabel.font = [UIFont systemFontOfSize:12];
+        _stateLabel.textColor = [UIColor colorWithHex:0x578bc7];
+        _stateLabel.text = @"按住说话";
+    }
+    return _stateLabel;
+}
+
+- (UIButton *)speekButton
+{
+    if (_speekButton == nil) {
+        _speekButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_speekButton setImage:[UIImage imageNamed:@"maikefeng_x2"] forState:UIControlStateNormal];
+        [_speekButton setImage:[UIImage imageNamed:@"maikefeng_down_x2"] forState:UIControlStateHighlighted];
+        _speekButton.frame = CGRectMake(Screen_Width / 2 - 40, self.stateLabel.maxY + 15, 80, 80);
+        [_speekButton addTarget:self action:@selector(speekButtonTouchDown:) forControlEvents:UIControlEventTouchDown];
+        [_speekButton addTarget:self action:@selector(speekButtonTouchUp:) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _speekButton;
+}
+
+- (UILabel *)tipLabel
+{
+    if (_tipLabel == nil) {
+        _tipLabel = [[UILabel alloc]initWithFrame:CGRectMake(0, self.speekButton.maxY + 38, Screen_Width, 18)];
+        _tipLabel.textAlignment = NSTextAlignmentCenter;
+        _tipLabel.font = [UIFont systemFontOfSize:14];
+        _tipLabel.textColor = [UIColor colorWithHex:0xFD3290];
+        _tipLabel.text = @"请告诉警方你在哪，发生了什么";
+    }
+    return _tipLabel;
+}
+
+- (UIView *)verticalLineView
+{
+    if (_verticalLineView == nil) {
+        _verticalLineView = [[UIView alloc]initWithFrame:CGRectMake(Screen_Width / 2.0 - 0.5, self.speekButton.maxY - 20, 1, 22 + 20)];
+        _verticalLineView.backgroundColor = [UIColor colorWithHex:0x9DA5BB];
+    }
+    return _verticalLineView;
+}
+
+- (UIImageView *)deleteImgView
+{
+    if (_deleteImgView == nil) {
+        _deleteImgView = [[UIImageView alloc]initWithFrame:CGRectMake(Screen_Width / 2.0 - 25, self.verticalLineView.maxY, 50, 50)];
+        [_deleteImgView setImage:[UIImage imageNamed:@"sanchu01_x2"]];
+        [_deleteImgView setHighlightedImage:[UIImage imageNamed:@"sanchu02_x2"]];
+    }
+    return _deleteImgView;
+}
+
+- (RecordWaveView *)recordWaveView
+{
+    if (_recordWaveView == nil) {
+        _recordWaveView = [[RecordWaveView alloc]initWithFrame:CGRectMake(Screen_Width / 2 - 120, 28, 0, 0)];
+        _recordWaveView.delegate = self;
+        _recordWaveView.backgroundColor = [UIColor whiteColor];
+    }
+    return _recordWaveView;
+}
+
+@end

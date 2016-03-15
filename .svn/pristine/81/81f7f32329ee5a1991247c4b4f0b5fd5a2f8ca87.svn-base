@@ -1,0 +1,256 @@
+//
+//  AlarmHistoryViewController.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/21.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "AlarmHistoryViewController.h"
+#import "AlarmHistoryTextCell.h"
+#import "AlarmHistoryImgTextCell.h"
+#import "AlarmHistoryAudioCell.h"
+#import "AlarmHistoryDetailViewController.h"
+#import "AlarmHistoryModel.h"
+#import "WDAudioPlayer.h"
+
+static NSString *cellIdentifierText = @"alarmTextIdentifier";
+static NSString *cellIdentifierImgText = @"alermImgTextIdentifier";
+static NSString *cellIdentifierAudio = @"alarmAudioIdentifier";
+
+@interface AlarmHistoryViewController ()<UITableViewDelegate, UITableViewDataSource>
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
+
+@property (strong, nonatomic) WDAudioPlayer *audioPlayer;
+
+@end
+
+@implementation AlarmHistoryViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    self.title = @"报警纪录";
+    UIView *header  = [[UIView alloc]initWithFrame:CGRectMake(0, 0, Screen_Width, 10)];
+    header.backgroundColor = RGB(242, 243, 247);
+    self.tableView.tableHeaderView = header;
+    
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    
+    [self requestHistory];
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    [self.audioPlayer audioStop];
+    self.audioPlayer = nil;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - UITableViewDelegate, UITableViewDataSource
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    AlarmHistoryDetailViewController *detailVC = MainStoryBoard(@"alarmDetailIdentifier");
+    detailVC.model = self.infoDataArray[indexPath.row];
+    [self.navigationController pushViewController:detailVC animated:YES];
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return self.infoDataArray.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    AlarmHistoryTextCell *textCell = [tableView dequeueReusableCellWithIdentifier:cellIdentifierText];
+    AlarmHistoryImgTextCell *imgTextCell = [tableView dequeueReusableCellWithIdentifier:cellIdentifierImgText];
+    AlarmHistoryAudioCell *audioCell = [tableView dequeueReusableCellWithIdentifier:cellIdentifierAudio];
+    if (textCell == nil) {
+        textCell = [[[NSBundle mainBundle] loadNibNamed:@"AlarmHistoryTextCell" owner:self options:nil]lastObject];
+    }
+    if (imgTextCell == nil) {
+        imgTextCell = [[[NSBundle mainBundle] loadNibNamed:@"AlarmHistoryImgTextCell" owner:self options:nil]lastObject];
+    }
+    if (audioCell == nil) {
+        audioCell = [[[NSBundle mainBundle] loadNibNamed:@"AlarmHistoryAudioCell" owner:self options:nil]lastObject];
+    }
+    id resultCell = audioCell;
+    HistoryModel *model  = self.infoDataArray[indexPath.row];
+    
+    NSRange range = [model.inputDate rangeOfString:@"."];
+    NSString *dateStr = @"";
+    if (range.location != NSNotFound) {
+        dateStr = [model.inputDate substringToIndex:range.location];
+        dateStr = [dateStr stringByReplacingOccurrencesOfString:@"-" withString:@"."];
+        NSRange range2 = [dateStr rangeOfString:@":" options:NSBackwardsSearch];
+        dateStr = [dateStr substringToIndex:range2.location];
+    }
+    textCell.dateLabel.text = dateStr;
+    if ([model.messageType isEqualToString:@"voiceAlarm"]) {
+        //语音报警
+        resultCell = audioCell;
+        audioCell.dateLabel.text = dateStr;
+        audioCell.audioButton.shouldUseLeftTitle = YES;
+        audioCell.audioButton.tag = 100 + indexPath.row;
+        [audioCell.audioButton addTarget:self action:@selector(audioButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+        NSString *audioPath = [self.infoDataArray[indexPath.row] message];
+        NSURL *audioURL = [NSURL URLWithString:audioPath];
+        [audioURL timeIntervalForMediaWithCompeletion:^(NSTimeInterval mediaDuation) {
+            [audioCell.audioButton setTitle:[NSString stringWithFormat:@"%.0lf\"",mediaDuation] forState:UIControlStateNormal];
+        }];
+        
+    }else if ([model.messageType isEqualToString:@"textAlarm"]){
+        //文字报警
+        resultCell = textCell;
+        
+        textCell.dateLabel.text = dateStr;
+        textCell.contentLabel.text = model.messageText;
+        
+    }else if ([model.messageType isEqualToString:@"imgAlarm"]){
+        //图片报警
+        resultCell = imgTextCell;
+        imgTextCell.dateLabel.text = dateStr;
+        imgTextCell.contentLabel.text = model.messageText;
+        NSArray *array = [model.message componentsSeparatedByString:@","];
+        [imgTextCell.eventImgView sd_setImageWithURL:[NSURL URLWithString:array[0]] placeholderImage:[UIImage imageNamed:@"small_default"]];
+        
+    }else{
+        //一键报警
+        resultCell = textCell;
+        textCell.dateLabel.text = dateStr;
+        textCell.contentLabel.text = model.messageText;
+        
+    }
+    
+    NSString *sovleStatus = model.callStatus != nil?model.callStatus:@"";
+    if ([sovleStatus isEqualToString:@"nodealing"]) {
+        //未处理
+        [resultCell setResloveStatus:HistoryStatusUnResolve];
+    }
+    if ([sovleStatus isEqualToString:@"dealing"]) {
+        //已完成
+        [resultCell setResloveStatus:HistoryStatusComplete];
+    }
+    if ([sovleStatus isEqualToString:@"waitPolice"]) {
+        //处理中
+        [resultCell setResloveStatus:HistoryStatusResoving];
+    }
+    
+    
+    //添加左滑删除功能
+    [resultCell setSwipeBackgroundColor:[UIColor clearColor]];
+    
+    [[resultCell rightSwipeSettings] setTransition:MGSwipeTransitionStatic];
+    MGSwipeButton *button = [MGSwipeButton buttonWithTitle:@"删除" icon:nil backgroundColor:[UIColor colorWithHex:0xF7315F] callback:^BOOL(MGSwipeTableCell *sender) {
+        
+        [self deleteAlarmHistoryWithId:model.alarmID andIndex:indexPath.row];
+        
+        return YES;
+    }];
+    
+    button.width = 90;
+    button.backgroundColor = [UIColor colorWithHex:0xF7315F];
+    button.titleLabel.font = [UIFont systemFontOfSize:16];
+    [resultCell setRightButtons:@[button]];
+
+    
+    return resultCell;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 100;
+}
+
+#pragma mark - audio button action 
+
+- (void)audioButtonClicked:(UIButton*)button
+{
+    NSString *audioPath = [self.infoDataArray[button.tag - 100] message];
+    DDLog(@"录音路径>>>>>%@",audioPath);
+    __weak typeof(self) weakSelf = self;
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        __strong typeof(self) strongSelf = weakSelf;
+        NSData *data = [[NSData alloc]initWithContentsOfURL:[NSURL URLWithString:audioPath]];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (data) {
+                WDAudioPlayer *audioPlayer = [[WDAudioPlayer alloc]initWithData:data];
+                [audioPlayer audioPlay];
+                strongSelf.audioPlayer = audioPlayer;
+            }
+        });
+    });
+
+}
+
+#pragma mark - HTTP
+
+- (void)requestHistory
+{
+    NSDictionary *params = @{@"tokenID":UUID};
+    __weak typeof(self) weakSelf = self;
+    APShowLoading;
+    [APIManager alarmHistoryWithParams:params success:^(NSDictionary *dict) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        AlarmHistoryModel *model = [AlarmHistoryModel mj_objectWithKeyValues:dict];
+        [strongSelf.infoDataArray removeAllObjects];
+        [strongSelf.infoDataArray addObjectsFromArray:model.Data.model];
+        [strongSelf.tableView reloadData];
+        
+    } dataError:^(NSInteger code, NSString *message) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        [strongSelf.view showWithMessage:message];
+        [strongSelf.infoDataArray removeAllObjects];
+        [strongSelf.tableView reloadData];
+    } failure:^(NSError *error) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        APShowServiceError;
+    }];
+}
+
+- (void)deleteAlarmHistoryWithId:(NSString*)alramID andIndex:(NSInteger)index
+{
+    if (alramID == nil) {
+        DDLog(@"alarmID 为空");
+        return;
+    }
+    NSDictionary *params = @{@"alarmID":[alramID stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding]};
+    __weak typeof(self) weakSelf = self;
+    APShowLoading;
+    [APIManager deleteAlarmHistoryWithParams:params success:^(NSDictionary *dict) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        [strongSelf.view showWithMessage:@"已删除"];
+        [self.infoDataArray removeObjectAtIndex:index];
+        [strongSelf.tableView beginUpdates];
+        [strongSelf.tableView deleteRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:index inSection:0]] withRowAnimation:UITableViewRowAnimationLeft];
+        [strongSelf.tableView endUpdates];
+        [strongSelf.tableView reloadData];
+        
+    } dataError:^(NSInteger code, NSString *message) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        [strongSelf.view showWithMessage:message];
+    } failure:^(NSError *error) {
+        __strong typeof(self) strongSelf = weakSelf;
+        APHide;
+        APShowServiceError;
+    }];
+}
+
+@end

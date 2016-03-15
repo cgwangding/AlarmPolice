@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="9060" systemVersion="15B42" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9051"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="otherCellIdentifier" rowHeight="55" id="KGk-i7-Jjw" customClass="OtherCell">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="55"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="54"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7zj-DC-r4n">
+                        <rect key="frame" x="16" y="0.0" width="22" height="54"/>
+                        <animations/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="22" id="Nh6-Lo-a6W"/>
+                        </constraints>
+                        <state key="normal" image="baojingjilu"/>
+                    </button>
+                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="RQT-88-mT9">
+                        <rect key="frame" x="274" y="0.0" width="46" height="54"/>
+                        <animations/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="46" id="XEq-Bc-Dbc"/>
+                        </constraints>
+                        <state key="normal" image="next"/>
+                    </button>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="JIn-Fu-bfi">
+                        <rect key="frame" x="20" y="53" width="300" height="1"/>
+                        <animations/>
+                        <color key="backgroundColor" white="1" alpha="0.10000000000000001" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="1" id="tDb-FN-uEB"/>
+                        </constraints>
+                    </view>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4ec-KH-ZiN">
+                        <rect key="frame" x="46" y="0.0" width="36" height="54"/>
+                        <animations/>
+                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                        <color key="textColor" white="1" alpha="0.80000000000000004" colorSpace="calibratedWhite"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                </subviews>
+                <animations/>
+                <constraints>
+                    <constraint firstAttribute="bottom" secondItem="4ec-KH-ZiN" secondAttribute="bottom" id="30h-Ez-adU"/>
+                    <constraint firstItem="RQT-88-mT9" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="4ay-pI-Qu0"/>
+                    <constraint firstAttribute="trailing" secondItem="RQT-88-mT9" secondAttribute="trailing" id="8wr-XN-Yeb"/>
+                    <constraint firstItem="7zj-DC-r4n" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="16" id="EyX-xN-kgu"/>
+                    <constraint firstItem="JIn-Fu-bfi" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="20" id="GxE-YT-cuB"/>
+                    <constraint firstAttribute="bottom" secondItem="RQT-88-mT9" secondAttribute="bottom" id="Iuk-ef-cJf"/>
+                    <constraint firstAttribute="bottom" secondItem="JIn-Fu-bfi" secondAttribute="bottom" id="UlK-0k-fHy"/>
+                    <constraint firstItem="4ec-KH-ZiN" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="VIc-FI-EUd"/>
+                    <constraint firstAttribute="bottom" secondItem="7zj-DC-r4n" secondAttribute="bottom" id="Ym6-uJ-ppO"/>
+                    <constraint firstItem="4ec-KH-ZiN" firstAttribute="leading" secondItem="7zj-DC-r4n" secondAttribute="trailing" constant="8" id="g7m-wO-Baa"/>
+                    <constraint firstAttribute="trailing" secondItem="JIn-Fu-bfi" secondAttribute="trailing" id="gfo-pB-Z2y"/>
+                    <constraint firstItem="RQT-88-mT9" firstAttribute="leading" secondItem="JIn-Fu-bfi" secondAttribute="trailing" id="pXx-z3-n4p"/>
+                    <constraint firstItem="7zj-DC-r4n" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" id="ze2-jU-qVx"/>
+                </constraints>
+                <variation key="default">
+                    <mask key="constraints">
+                        <exclude reference="pXx-z3-n4p"/>
+                    </mask>
+                </variation>
+            </tableViewCellContentView>
+            <animations/>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+            <connections>
+                <outlet property="iconButton" destination="7zj-DC-r4n" id="j6C-uT-07t"/>
+                <outlet property="indicatorButton" destination="RQT-88-mT9" id="z9D-WA-CWG"/>
+                <outlet property="titleLabel" destination="4ec-KH-ZiN" id="nc0-gD-HHG"/>
+            </connections>
+            <point key="canvasLocation" x="295" y="255.5"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="baojingjilu" width="22" height="22"/>
+        <image name="next" width="7" height="13"/>
+    </resources>
+</document>

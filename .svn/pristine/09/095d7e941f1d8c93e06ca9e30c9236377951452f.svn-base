@@ -1,0 +1,210 @@
+//
+//  AlarmViewController.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/8.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "AlarmViewController.h"
+#import "MessageToolView.h"
+#import "ImageMessageToolView.h"
+#import "AppDelegate.h"
+#import "YBImgPickerViewController.h"
+#import "AlarmQuickView.h"
+
+@interface AlarmViewController ()<BMKMapViewDelegate, MessageToolViewDelegate, UIImagePickerControllerDelegate,YBImgPickerViewControllerDelegate>
+@property (weak, nonatomic) IBOutlet BMKMapView *mapView;
+@property (weak, nonatomic) IBOutlet UIButton *alarmButton;
+
+@property (strong, nonatomic) YBImgPickerViewController *imgController;
+
+@property (weak, nonatomic) IBOutlet AlarmQuickView *alarmQuickView;
+
+@end
+
+@implementation AlarmViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(alarmQuickly)];
+    longPress.minimumPressDuration = 1;
+    [self.alarmButton addGestureRecognizer:longPress];
+    
+    UITapGestureRecognizer *tapClicked = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(alarmButtonTap)];
+    [self.alarmButton addGestureRecognizer:tapClicked];
+    
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    [self.mapView viewWillAppear];
+    self.mapView.delegate = self;
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+    [self.mapView viewWillDisappear];
+    self.mapView.delegate = nil;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - MessageToolViewDelegate
+
+- (void)messageToolViewNeedPresentCamera:(MessageToolView *)toolView
+{
+    [self startCarmera];
+}
+
+- (void)messageToolViewNeedPresentImagePicker:(MessageToolView *)toolView
+{
+    [self startPhotoLibarary];
+}
+
+- (void)messageToolView:(MessageToolView *)toolView didNeedSendRecord:(NSURL *)filePath withError:(NSError *)error
+{
+    if (error) {
+        [SVProgressHUD showErrorWithStatus:error.domain];
+    }else{
+#warning 此处发送录音
+        DDLog(@"发送录音");
+//        [self.view makeToast:@"发送中……"];
+        
+//        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+//        hud.labelText = @"发送中……";
+//        [hud show:YES];
+//        [hud hide:YES afterDelay:5];
+//        
+//        [SVProgressHUD showInfoWithStatus:@"发送中……"];
+//        [SVProgressHUD dismissWithDelay:1];
+//        [SVProgressHUD showSuccessWithStatus:@"发送成功"];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [SVProgressHUD showWithStatus:@"发送中……"];
+            [SVProgressHUD dismissWithDelay:3];
+        });
+    }
+}
+
+- (void)messageToolView:(MessageToolView *)toolView didNeedSendMessage:(NSString *)message
+{
+#warning 此处进行文字信息的发送
+    
+}
+
+#pragma mark - MessageToolViewDelegate method helper
+- (void)startCarmera
+{
+    if (![InCommonUse isDeviceCameraAvailable]) {
+        UIAlertView *alert = [[UIAlertView alloc]initWithTitle:nil message:@"相机不可用" delegate:nil cancelButtonTitle:@"知道了" otherButtonTitles:nil, nil];
+        [alert show];
+        return;
+    }
+    UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypeCamera;
+    UIImagePickerController *picker = [[UIImagePickerController alloc]init];
+    picker.delegate = self;
+    picker.allowsEditing = YES;
+    picker.sourceType = sourceType;
+    if ([[[UIDevice currentDevice] systemVersion] integerValue] >= 8) {
+        picker.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+    }
+    [self presentViewController:picker animated:YES completion:nil];
+}
+
+- (void)startPhotoLibarary
+{
+    if (![InCommonUse isPhotoLibraryAvailable]) {
+        UIAlertView *alert = [[UIAlertView alloc]initWithTitle:nil message:@"相册不可用" delegate:nil cancelButtonTitle:@"知道了" otherButtonTitles:nil, nil];
+        [alert show];
+        return;
+    }
+    UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    UIImagePickerController *picker = [[UIImagePickerController alloc]init];
+    picker.delegate = self;
+    picker.allowsEditing = YES;
+    picker.sourceType = sourceType;
+    if ([[[UIDevice currentDevice] systemVersion] integerValue] >= 8) {
+        picker.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+    }
+    [self presentViewController:picker animated:YES completion:nil];
+}
+
+#pragma mark - UIImagePickerControllerDelegate
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
+{
+    UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
+    //这个时候需要弹出一个页面
+    AppDelegate *app = (AppDelegate*)[UIApplication sharedApplication].delegate;
+    [app.sharedImageArr addObject:image];
+    [picker dismissViewControllerAnimated:YES completion:^{
+        if ([self.imgController respondsToSelector:@selector(dismissViewControllerAnimated:completion:)]) {
+            [self.imgController dismissViewControllerAnimated:NO completion:nil];
+        }
+        ImageMessageToolView *imgMsgView = [[ImageMessageToolView alloc]init];
+        imgMsgView.imageArray = [NSArray arrayWithArray:app.sharedImageArr];
+        imgMsgView.userInput = app.sharedInputStr;
+        [imgMsgView show];
+        
+        [imgMsgView onClickedAddContinueButtonBlock:^{
+//            [self startPhotoLibarary];
+            //相片图片选择器
+            YBImgPickerViewController *controller = [[YBImgPickerViewController alloc]init];
+            [controller showInViewContrller:self choosenNum:(4 - app.sharedImageArr.count) delegate:self];
+            self.imgController = controller;
+        }];
+        
+        [imgMsgView onClickedCertainButtonBlock:^(NSArray<UIImage *> *imageArr, NSString *text) {
+#warning 这里调用发送消息的方法
+            
+        }];
+    }];
+}
+
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
+{
+    [picker dismissViewControllerAnimated:YES completion:nil];
+}
+
+#pragma mark - YBImgPickerViewControllerDelegate
+
+- (void)YBImagePickerDidFinishWithImages:(NSArray *)imageArray {
+    AppDelegate *app = (AppDelegate*)[UIApplication sharedApplication].delegate;
+    [app.sharedImageArr addObjectsFromArray:imageArray];
+    ImageMessageToolView *imgMsgView = [[ImageMessageToolView alloc]init];
+    imgMsgView.imageArray = [NSArray arrayWithArray:app.sharedImageArr];
+    imgMsgView.userInput = app.sharedInputStr;
+    [imgMsgView show];
+    
+    [imgMsgView onClickedAddContinueButtonBlock:^{
+        //            [self startPhotoLibarary];
+        //相片图片选择器
+        YBImgPickerViewController *controller = [[YBImgPickerViewController alloc]init];
+        [controller showInViewContrller:self choosenNum:(4 - app.sharedImageArr.count) delegate:self];
+        self.imgController = controller;
+    }];
+}
+
+
+#pragma mark - button action
+
+- (void)alarmButtonTap {
+ 
+    MessageToolView *toolView = [[MessageToolView alloc]init];
+    toolView.delegate = self;
+    [toolView show];
+    
+}
+
+- (void)alarmQuickly
+{
+    self.alarmQuickView.hidden = NO;
+    
+}
+@end

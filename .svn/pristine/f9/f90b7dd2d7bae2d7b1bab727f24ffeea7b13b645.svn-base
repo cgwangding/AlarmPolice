@@ -1,0 +1,190 @@
+//
+//  PersonalCenterView.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/21.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "PersonalCenterView.h"
+#import "PersonalCell.h"
+#import "OtherCell.h"
+
+static NSString *cellIdentifier1 = @"personalCellIdentifier";
+static NSString *cellIdentifier2 = @"otherCellIdentifier";
+
+NSString * const DidNeedPushControllerNotification = @"DidNeedPushControllerNotification";
+
+@interface PersonalCenterView ()<UITableViewDelegate, UITableViewDataSource, UIGestureRecognizerDelegate>
+
+@property (strong, nonatomic) UITableView *tableView;
+@property (strong, nonatomic) UIButton *logoutButton;
+
+@property (strong, nonatomic) NSArray *dataArr;
+
+@property (strong, nonatomic) UIWindow *showWindow;
+@end
+
+@implementation PersonalCenterView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    if (self = [super initWithFrame:frame]) {
+        self.frame = CGRectMake(-Screen_Width + 67, 0, Screen_Width - 67, Screen_Height);
+        self.backgroundColor = [UIColor colorWithHex:0x3A4B76];
+        self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+        [self addSubview:self.tableView];
+        self.dataArr = @[@[@"baojingjilu",@"报警记录"],@[@"wodeyuyue",@"我的预约"],@[@"wodeshoucang",@"我的收藏"],@[@"wentifankui",@"问题反馈"],@[@"guanyu",@"关于"]];
+
+        UITapGestureRecognizer *hideTap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(hide)];
+        hideTap.delegate = self;
+        [self.showWindow addGestureRecognizer:hideTap];
+        [self addSubview:self.logoutButton];
+    }
+    return self;
+}
+
+- (void)show
+{
+    
+    [self.showWindow makeKeyAndVisible];
+    [self.showWindow addSubview:self];
+    __weak typeof(self) weakSelf = self;
+    [UIView animateWithDuration:0.25 delay:0 options:UIViewAnimationOptionCurveLinear animations:^{
+        __strong typeof(self) strongSelf = weakSelf;
+        CGRect frame = strongSelf.frame;
+        frame.origin.x = 0;
+        strongSelf.frame = frame;
+    } completion:nil];
+}
+
+- (void)hide
+{
+    [self.showWindow resignKeyWindow];
+    //    [self removeFromSuperview];
+    __weak typeof(self) weakSelf = self;
+    [UIView animateWithDuration:0.25 delay:0 options:UIViewAnimationOptionCurveLinear animations:^{
+        __strong typeof(self) strongSelf = weakSelf;
+        strongSelf.showWindow.transform = CGAffineTransformMakeScale(0.1, 0.1);
+    } completion:^(BOOL finished) {
+        __strong typeof(self) strongSelf = weakSelf;
+        strongSelf.showWindow.hidden = YES;
+    }];
+}
+
+#pragma mark - UIGestureRecognizerDelegate
+
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
+{
+    CGPoint location = [gestureRecognizer locationInView:self];
+    if (location.x > (Screen_Width - 76)) {
+        return YES;
+    }
+    return NO;
+}
+
+#pragma mark - UITableViewDelegate, UITableViewDataSource
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [tableView deselectRowAtIndexPath:indexPath animated:NO];
+    
+    [[NSNotificationCenter defaultCenter]postNotificationName:DidNeedPushControllerNotification object:@(indexPath.row)];
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return 6;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    PersonalCell *cell1 = [[[NSBundle mainBundle]loadNibNamed:@"PersonalCell" owner:self options:nil] lastObject];
+    OtherCell *cell2 = [[[NSBundle mainBundle]loadNibNamed:@"OtherCell" owner:self options:nil] lastObject];
+    APUserData *user = [APUserData sharedUserData];
+    if (indexPath.row == 0) {
+        cell1.headerImgView.cornerRadius = 32;
+        [cell1.headerImgView sd_setImageWithURL:[NSURL URLWithString:user.headerURL] placeholderImage:[UIImage imageNamed:@"header_default"]];
+        cell1.nickNameLabel.text = user.realName;
+        cell1.phoneLabel.text = [self formatPhone:user.telephone];
+        return cell1;
+    }
+    NSString *imageName = self.dataArr[indexPath.row - 1][0];
+    NSString *title = self.dataArr[indexPath.row - 1][1];
+    [cell2.iconButton setImage:[UIImage imageNamed:imageName] forState:UIControlStateNormal];
+    cell2.titleLabel.text = title;
+    
+    return cell2;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.row == 0) {
+        return 118;
+    }
+    return 55;
+}
+
+#pragma mark - button action
+
+- (void)logout:(UIButton*)button
+{
+    //退出
+        [[NSNotificationCenter defaultCenter]postNotificationName:DidNeedPushControllerNotification object:@(-1)];
+}
+
+#pragma mark - helper
+
+- (NSString*)formatPhone:(NSString*)phone
+{
+    NSString *result = [phone stringByReplacingCharactersInRange:NSMakeRange(3, 4) withString:@"****"];
+    return result;
+}
+
+#pragma mark - getter 
+
+- (UITableView *)tableView
+{
+    if (_tableView == nil) {
+        _tableView = [[UITableView alloc]initWithFrame:CGRectMake(0, 0, Screen_Width  - 67, Screen_Height) style:UITableViewStylePlain];
+        _tableView.backgroundColor = [UIColor colorWithHex:0x3A4B76];
+        _tableView.delegate = self;
+        _tableView.dataSource = self;
+        _tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    }
+    return _tableView;
+}
+
+- (UIButton *)logoutButton
+{
+    if (_logoutButton == nil) {
+        _logoutButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_logoutButton setFrame:CGRectMake(18, Screen_Height - 20 - 48, self.width - 36, 48)];
+        _logoutButton.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.15];
+        _logoutButton.cornerRadius = 5;
+        [_logoutButton setImage:[UIImage imageNamed:@"exit"] forState:UIControlStateNormal];
+        [_logoutButton setTitle:@"退出登录" forState:UIControlStateNormal];
+        [_logoutButton setImageEdgeInsets:UIEdgeInsetsMake(0, -20, 0, 0)];
+        [_logoutButton setTitleColor:[[UIColor colorWithHex:0xFF745E] colorWithAlphaComponent:0.8] forState:UIControlStateNormal];
+        [_logoutButton addTarget:self action:@selector(logout:) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _logoutButton;
+}
+
+- (UIWindow *)showWindow
+{
+    if (_showWindow == nil) {
+        _showWindow = [[UIWindow alloc]initWithFrame:CGRectMake(0, 0, Screen_Width, Screen_Height)];
+        [_showWindow setWindowLevel:UIWindowLevelAlert];
+        _showWindow.backgroundColor = [[UIColor darkTextColor] colorWithAlphaComponent:.4];
+    }
+    return _showWindow;
+}
+
+
+@end

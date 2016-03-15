@@ -1,0 +1,270 @@
+//
+//  CommenInfoViewController.m
+//  AlarmPolice
+//
+//  Created by AD-iOS on 15/12/15.
+//  Copyright © 2015年 Adinnet. All rights reserved.
+//
+
+#import "CommenInfoViewController.h"
+#import "CustomTabBarController.h"
+#import "LoginViewController.h"
+
+#import "IQKeyboardManager.h"
+
+@interface CommenInfoViewController ()<UITextFieldDelegate, UIActionSheetDelegate>
+@property (weak, nonatomic) IBOutlet UITextField *userNameTF;
+@property (assign, nonatomic) BOOL isInputName;
+@property (weak, nonatomic) IBOutlet UITextField *sexTF;
+@property (assign, nonatomic) BOOL isInputSex;
+
+@property (weak, nonatomic) IBOutlet UITextField *userCardNoTF;
+@property (assign, nonatomic) BOOL isInputCardNo;
+
+@property (weak, nonatomic) IBOutlet UITextField *provinceTF;
+@property (weak, nonatomic) IBOutlet UITextField *addressTF;
+
+@property (weak, nonatomic) IBOutlet UIButton *compeletionButton;
+
+@property (strong, nonatomic) UITextField *preTF;
+
+
+- (IBAction)completeButtonClicked:(id)sender;
+@end
+
+@implementation CommenInfoViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    self.title = @"基本信息";
+    self.compeletionButton.backgroundColor = RGB(157, 166, 186);
+    self.compeletionButton.enabled = NO;
+    
+    self.userNameTF.tag = 100;
+    self.sexTF.tag = 101;
+    self.userCardNoTF.tag = 102;
+    self.provinceTF.tag = 103;
+    self.addressTF.tag = 104;
+    
+    [self getAreaInfo];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    [IQKeyboardManager sharedManager].enable = NO;
+    [IQKeyboardManager sharedManager].enableAutoToolbar = NO;
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (UIStatusBarStyle)preferredStatusBarStyle
+{
+    return UIStatusBarStyleLightContent;
+}
+
+#pragma mark - UITextFieldDelegate
+
+- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
+{
+    if ([textField isEqual:self.userNameTF]) {
+        if (self.userNameTF.text.length > 0) {
+            self.isInputName = YES;
+        }else{
+            self.isInputName = NO;
+        }
+    }
+    if ([textField isEqual:self.sexTF] ) {
+        if (self.sexTF.text.length > 0) {
+            self.isInputSex = YES;
+        }else{
+            self.isInputSex = NO;
+        }
+    }
+    if ([textField isEqual:self.userCardNoTF]) {
+        if (self.userCardNoTF.text.length > 0) {
+            self.isInputCardNo = YES;
+        }else{
+            self.isInputCardNo = NO;
+        }
+    }
+    
+    if (self.isInputCardNo && self.isInputSex && self.isInputName) {
+        self.compeletionButton.backgroundColor = [UIColor colorWithHex:0x3A4B76];
+        self.compeletionButton.enabled = YES;
+    }else{
+        self.compeletionButton.backgroundColor = RGB(157, 166, 186);
+        self.compeletionButton.enabled = NO;
+    }
+    
+    return YES;
+}
+
+
+- (BOOL)textFieldShouldBeginEditing:(UITextField *)textField
+{
+    if (self.preTF == nil) {
+        self.preTF = textField;
+    }else{
+        [self.preTF resignFirstResponder];
+        self.preTF = textField;
+    }
+    return YES;
+}
+
+- (void)textFieldDidBeginEditing:(UITextField *)textField
+{
+    if (textField.tag == 101) {
+        [textField resignFirstResponder];
+        UIActionSheet *sheet = [[UIActionSheet alloc]initWithTitle:nil delegate:self cancelButtonTitle:@"取消" destructiveButtonTitle:nil otherButtonTitles:@"男",@"女", nil];
+        [sheet showInView:self.view];
+    }
+}
+
+- (BOOL)textFieldShouldEndEditing:(UITextField *)textField
+{
+    [textField resignFirstResponder];
+    return YES;
+}
+
+- (BOOL)textFieldShouldReturn:(UITextField *)textField
+{
+    [textField resignFirstResponder];
+    return YES;
+}
+
+#pragma mark - UIActionSheetDelegate
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if (buttonIndex == 0) {
+        self.sexTF.text = @"男";
+    }
+    if (buttonIndex == 1) {
+        self.sexTF.text = @"女";
+    }
+    if (self.sexTF.text.length > 0) {
+        self.isInputSex = YES;
+    }else{
+        self.isInputSex = NO;
+    }
+    if (self.isInputCardNo && self.isInputSex && self.isInputName) {
+        self.compeletionButton.backgroundColor = [UIColor colorWithHex:0x3A4B76];
+        self.compeletionButton.enabled = YES;
+    }else{
+        self.compeletionButton.backgroundColor = RGB(157, 166, 186);
+        self.compeletionButton.enabled = NO;
+    }
+}
+
+#pragma mark - HTTP
+
+- (void)getAreaInfo
+{
+    
+    [APIManager areaInfoWithParams:nil success:^(NSDictionary *dict) {
+        NSArray *model = dict[@"Data"][@"model"];
+        DDLog(@"%@",[dict[@"Data"] allKeys]);
+    } dataError:^(NSInteger code, NSString *message) {
+        
+    } failure:^(NSError *error) {
+        
+    }];
+}
+
+- (void)completeUserInfo
+{
+    NSString *sex = @"male";
+    NSString *sexText = [self.sexTF.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    if ([sexText isEqualToString:@"女"]) {
+        sex = @"femal";
+    }
+    NSDictionary *dict = @{
+                           @"telephone":self.phone?self.phone:@"",
+                           @"realName":self.userNameTF.text,
+                           @"userPassword":self.pwd?self.pwd:@"",
+                           @"idCard":self.userCardNoTF.text,
+                           @"address":[NSString stringWithFormat:@"%@%@",self.provinceTF.text,self.addressTF.text],
+                           @"alias":self.phone?self.phone:@"",
+                           @"tag":@"people",
+                           @"sex":sex
+                           };
+    __weak typeof(self) weakSelf = self;
+    [APIManager completeUserInfoWithParams:dict success:^(NSDictionary *dict) {
+        __strong typeof(self) strongSelf = weakSelf;
+        [SVProgressHUD showSuccessWithStatus:@"恭喜您注册成功，请登录！"];
+        //去登录
+        for (UIViewController *vc in strongSelf.navigationController.viewControllers) {
+            if ([vc isKindOfClass:[LoginViewController class]]) {
+                [strongSelf.navigationController popToViewController:vc animated:YES];
+            }
+        }
+        
+    } dataError:^(NSInteger code, NSString *message) {
+       
+    } failure:^(NSError *error) {
+        
+    }];
+}
+
+#pragma mark - helper
+
+- (BOOL)canSubmit
+{
+    BOOL canSubmit = NO;
+    if ([[self.userNameTF.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] isEqualToString:@""] == NO) {
+        canSubmit = YES;
+    }else{
+        [SVProgressHUD showInfoWithStatus:@"请输入真实姓名"];
+    }
+    
+    if ([[self.sexTF.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] isEqualToString:@""] == NO) {
+        if ([self.sexTF.text isEqualToString:@"男"] || [self.sexTF.text isEqualToString:@"女"] ) {
+            canSubmit = YES;
+        }else{
+            [SVProgressHUD showInfoWithStatus:@"请填写正确的性别"];
+        }
+    }else{
+        [SVProgressHUD showInfoWithStatus:@"请输入性别"];
+    }
+    
+    if ([[self.userCardNoTF.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] isEqualToString:@""] == NO) {
+        canSubmit = YES;
+    }else{
+        [SVProgressHUD showInfoWithStatus:@"请输入身份证号"];
+    }
+    
+    if ([[self.provinceTF.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] isEqualToString:@""] == NO) {
+        canSubmit = YES;
+    }else{
+        [SVProgressHUD showInfoWithStatus:@"请选择城市"];
+    }
+    
+    if ([[self.addressTF.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] isEqualToString:@""] == NO) {
+        canSubmit = YES;
+    }else{
+        [SVProgressHUD showInfoWithStatus:@"请填写地址"];
+    }
+    
+    
+    return canSubmit;
+}
+
+#pragma mark - button action
+
+- (IBAction)completeButtonClicked:(id)sender {
+    if ([self canSubmit]) {
+        [self completeUserInfo];
+    }
+    
+}
+@end

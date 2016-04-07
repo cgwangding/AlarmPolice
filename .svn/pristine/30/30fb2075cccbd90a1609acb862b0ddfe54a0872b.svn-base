@@ -79,7 +79,7 @@
     [APService setupWithOption:launchOptions];
     [APService setDebugMode];
     [APService resetBadge];
-    
+   
     
     
     application.applicationIconBadgeNumber = 0;
@@ -123,7 +123,7 @@
 
 - (void)applicationWillTerminate:(UIApplication *)application {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-    
+
 }
 
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
@@ -154,7 +154,7 @@
             //重新登录
             [[NSNotificationCenter defaultCenter]postNotificationName:HadLoginAtAnotherPlaceNotification object:extraStr];
         }else{
-            [[NSNotificationCenter defaultCenter]postNotificationName:AlarmHadChageStateNotification object:userInfo[@"extra_data"]];
+                [[NSNotificationCenter defaultCenter]postNotificationName:AlarmHadChageStateNotification object:userInfo[@"extra_data"]];
         }
     }
     completionHandler(UIBackgroundFetchResultNewData);

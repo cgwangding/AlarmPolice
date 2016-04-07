@@ -58,13 +58,7 @@ static NSString *cellIdentifierAudio = @"alarmAudioIdentifier";
 {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     AlarmHistoryDetailViewController *detailVC = MainStoryBoard(@"alarmDetailIdentifier");
-    HistoryModel *model  = self.infoDataArray[indexPath.row];
-    id cell = [tableView cellForRowAtIndexPath:indexPath];
-    if ([cell isKindOfClass:[AlarmHistoryAudioCell class]]) {
-        AlarmHistoryAudioCell *audioCell = cell;
-        model.audioLength = audioCell.audioButton.titleLabel.text;
-    }
-    detailVC.model = model;
+    detailVC.model = self.infoDataArray[indexPath.row];
     [self.navigationController pushViewController:detailVC animated:YES];
 }
 
@@ -115,15 +109,9 @@ static NSString *cellIdentifierAudio = @"alarmAudioIdentifier";
         [audioCell.audioButton addTarget:self action:@selector(audioButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
         NSString *audioPath = [self.infoDataArray[indexPath.row] message];
         NSURL *audioURL = [NSURL URLWithString:audioPath];
-        
-        if (model.audioLength != nil && ![model.audioLength isEqualToString:@"<null>"]) {
-            [audioCell.audioButton setTitle:[NSString stringWithFormat:@"%.0lf\"",[model.audioLength doubleValue]] forState:UIControlStateNormal];
-        }else{
-            [audioURL timeIntervalForMediaWithCompeletion:^(NSTimeInterval mediaDuation) {
-                [audioCell.audioButton setTitle:[NSString stringWithFormat:@"%.0lf\"",mediaDuation] forState:UIControlStateNormal];
-            }];
-            
-        }
+        [audioURL timeIntervalForMediaWithCompeletion:^(NSTimeInterval mediaDuation) {
+            [audioCell.audioButton setTitle:[NSString stringWithFormat:@"%.0lf\"",mediaDuation] forState:UIControlStateNormal];
+        }];
         
     }else if ([model.messageType isEqualToString:@"textAlarm"]){
         //文字报警
@@ -161,10 +149,6 @@ static NSString *cellIdentifierAudio = @"alarmAudioIdentifier";
         //处理中
         [resultCell setResloveStatus:HistoryStatusResoving];
     }
-    if ([sovleStatus isEqualToString:@"cancleAlarm"]) {
-        //已取消
-        [resultCell setResloveStatus:HistoryStatusCanceled];
-    }
     
     
     //添加左滑删除功能
@@ -182,7 +166,7 @@ static NSString *cellIdentifierAudio = @"alarmAudioIdentifier";
     button.backgroundColor = [UIColor colorWithHex:0xF7315F];
     button.titleLabel.font = [UIFont systemFontOfSize:16];
     [resultCell setRightButtons:@[button]];
-    
+
     
     return resultCell;
 }
@@ -192,7 +176,7 @@ static NSString *cellIdentifierAudio = @"alarmAudioIdentifier";
     return 100;
 }
 
-#pragma mark - audio button action
+#pragma mark - audio button action 
 
 - (void)audioButtonClicked:(UIButton*)button
 {
@@ -210,7 +194,7 @@ static NSString *cellIdentifierAudio = @"alarmAudioIdentifier";
             }
         });
     });
-    
+
 }
 
 #pragma mark - HTTP

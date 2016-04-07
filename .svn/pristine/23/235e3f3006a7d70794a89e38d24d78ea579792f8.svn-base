@@ -30,6 +30,7 @@
 		DC664DCD1C217C1D00296301 /* AddressCell.m in Sources */ = {isa = PBXBuildFile; fileRef = DC664DCB1C217C1D00296301 /* AddressCell.m */; };
 		DC664DCE1C217C1D00296301 /* AddressCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = DC664DCC1C217C1D00296301 /* AddressCell.xib */; };
 		DC67F61A1C3B75FF009881CC /* UIImage+ImageChooseManager.m in Sources */ = {isa = PBXBuildFile; fileRef = DC67F6191C3B75FF009881CC /* UIImage+ImageChooseManager.m */; };
+		DC67F61E1C3B946C009881CC /* NSObject+Validate.m in Sources */ = {isa = PBXBuildFile; fileRef = DC67F61D1C3B946C009881CC /* NSObject+Validate.m */; };
 		DC67F6241C3BA44E009881CC /* WDAddressPicker.m in Sources */ = {isa = PBXBuildFile; fileRef = DC67F6231C3BA44E009881CC /* WDAddressPicker.m */; };
 		DC6B339C1C4630FA007D310F /* AlarmHistoryDetailModel.m in Sources */ = {isa = PBXBuildFile; fileRef = DC6B339B1C4630FA007D310F /* AlarmHistoryDetailModel.m */; };
 		DC70B57B1C3D160B00E9B4C3 /* NewsModel.m in Sources */ = {isa = PBXBuildFile; fileRef = DC70B57A1C3D160B00E9B4C3 /* NewsModel.m */; };
@@ -211,6 +212,8 @@
 		DC664DCC1C217C1D00296301 /* AddressCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = AddressCell.xib; sourceTree = "<group>"; };
 		DC67F6181C3B75FF009881CC /* UIImage+ImageChooseManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageChooseManager.h"; sourceTree = "<group>"; };
 		DC67F6191C3B75FF009881CC /* UIImage+ImageChooseManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImageChooseManager.m"; sourceTree = "<group>"; };
+		DC67F61C1C3B946C009881CC /* NSObject+Validate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+Validate.h"; sourceTree = "<group>"; };
+		DC67F61D1C3B946C009881CC /* NSObject+Validate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+Validate.m"; sourceTree = "<group>"; };
 		DC67F6221C3BA44E009881CC /* WDAddressPicker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WDAddressPicker.h; sourceTree = "<group>"; };
 		DC67F6231C3BA44E009881CC /* WDAddressPicker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WDAddressPicker.m; sourceTree = "<group>"; };
 		DC6B339A1C4630FA007D310F /* AlarmHistoryDetailModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AlarmHistoryDetailModel.h; sourceTree = "<group>"; };
@@ -561,6 +564,8 @@
 		DC67F61B1C3B944D009881CC /* NSObject */ = {
 			isa = PBXGroup;
 			children = (
+				DC67F61C1C3B946C009881CC /* NSObject+Validate.h */,
+				DC67F61D1C3B946C009881CC /* NSObject+Validate.m */,
 			);
 			path = NSObject;
 			sourceTree = "<group>";
@@ -1548,6 +1553,7 @@
 				DCD794551C3A1E7400284F26 /* FindPasswordViewController.m in Sources */,
 				DCC1B7C51C2D211700DF1260 /* IQKeyboardManager.m in Sources */,
 				DCAE0A9F1C0D4F8800E9BB93 /* UIViewController+HUD.m in Sources */,
+				DC67F61E1C3B946C009881CC /* NSObject+Validate.m in Sources */,
 				DCA55CE81C27EE1C001E64EF /* PersonalAddrModifyViewController.m in Sources */,
 				DC8E45E51C200395001E9695 /* RegistViewController.m in Sources */,
 				DCA55CF71C27F3A8001E64EF /* AlarmHistoryImgTextCell.m in Sources */,

@@ -217,10 +217,6 @@
     //布局图片最多4个
     CGFloat itemWH = 76;
     CGFloat itemSpace = (Screen_Width - 28 - itemWH * 4) / 3;
-    if (itemSpace < 0) {
-        itemSpace = 5;
-    }
-    itemWH = (Screen_Width - 28 - itemSpace * 3) / 4;
     if (self.imageArray == nil) {
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
         [button setFrame:CGRectMake(14, 0, itemWH, itemWH)];

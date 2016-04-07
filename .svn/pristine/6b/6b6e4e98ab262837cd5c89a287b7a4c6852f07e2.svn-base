@@ -285,7 +285,7 @@ NSString * const AlarmIDKey = @"AlarmIDKey";
     UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypeCamera;
     UIImagePickerController *picker = [[UIImagePickerController alloc]init];
     picker.delegate = self;
-//    picker.allowsEditing = YES;
+    picker.allowsEditing = YES;
     picker.sourceType = sourceType;
     if ([[[UIDevice currentDevice] systemVersion] integerValue] >= 8) {
         picker.modalPresentationStyle = UIModalPresentationOverCurrentContext;
@@ -303,7 +303,7 @@ NSString * const AlarmIDKey = @"AlarmIDKey";
     UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
     UIImagePickerController *picker = [[UIImagePickerController alloc]init];
     picker.delegate = self;
-//    picker.allowsEditing = YES;
+    picker.allowsEditing = YES;
     picker.sourceType = sourceType;
     if ([[[UIDevice currentDevice] systemVersion] integerValue] >= 8) {
         picker.modalPresentationStyle = UIModalPresentationOverCurrentContext;
@@ -315,7 +315,7 @@ NSString * const AlarmIDKey = @"AlarmIDKey";
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
 {
-    UIImage *image = [info objectForKey:UIImagePickerControllerOriginalImage];
+    UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
     //这个时候需要弹出一个页面
     AppDelegate *app = (AppDelegate*)[UIApplication sharedApplication].delegate;
     [app.sharedImageArr addObject:image];
@@ -1311,13 +1311,6 @@ NSString * const AlarmIDKey = @"AlarmIDKey";
             DDLog(@"有人接警");
             //报警按钮变成受理中
             [self.alarmButton setImage:[UIImage imageNamed:@"resolving"] forState:UIControlStateSelected];
-            
-            if (self.alarmButton.selected == NO) {
-                self.alarmButton.selected = YES;
-                self.alarmBarrierButton.hidden = NO;
-                [self.view bringSubviewToFront:self.alarmBarrierButton];
-            }
-            
             //显示接警人的信息
             [self.view addSubview:self.willArriveView];
             

@@ -1,32 +1,17 @@
 //
-//  AlarmHistoryModel.h
+//  AlarmHistoryDetailModel.h
 //  AlarmPolice
 //
-//  Created by AD-iOS on 16/1/8.
+//  Created by AD-iOS on 16/1/13.
 //  Copyright © 2016年 Adinnet. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 
-@class HistoryData,HistoryModel;
-@interface AlarmHistoryModel : NSObject
+@interface AlarmHistoryDetailModel : NSObject
 
-@property (nonatomic, copy) NSString *Msg;
 
-@property (nonatomic, copy) NSString *IsSuccess;
-
-@property (nonatomic, copy) NSString *Code;
-
-@property (nonatomic, strong) HistoryData *Data;
-
-@end
-@interface HistoryData : NSObject
-
-@property (nonatomic, strong) NSArray<HistoryModel *> *model;
-
-@end
-
-@interface HistoryModel : NSObject
+@property (nonatomic, copy) NSString *status;
 
 @property (nonatomic, copy) NSString *receiveUpdate;
 
@@ -42,6 +27,8 @@
 
 @property (nonatomic, copy) NSString *addressName;
 
+@property (nonatomic, copy) NSString *userPhone;
+
 @property (nonatomic, copy) NSString *latitude;
 
 @property (nonatomic, copy) NSString *messageText;
@@ -52,13 +39,14 @@
 
 @property (nonatomic, copy) NSString *memberHeadImg;
 
-@property (copy, nonatomic) NSString *status;
+@property (nonatomic, copy) NSString *callStatus;
 
-@property (copy, nonatomic) NSString *inputDate;
+@property (nonatomic, copy) NSString *audioLength;
 
-@property (copy, nonatomic) NSString *callStatus;
+@property (nonatomic, copy) NSString *inputDate;
 
-@property (copy, nonatomic) NSString *audioLength;
+@property (nonatomic, copy) NSString *name;
+
+@property (nonatomic, copy) NSString *policeName;
 
 @end
-

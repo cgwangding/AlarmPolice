@@ -9,7 +9,7 @@
 //正式地址http://116.228.89.136:40011
 //测试地址http://10.40.200.56:8080
 //客户地址http://139.196.179.24:40011
-#define BaseInterfaceURL                  @"http://139.196.179.24:40011"
+#define BaseInterfaceURL                  @"http://116.228.89.136:40011"
 
 //获取地区
 #define APGetAreaInfoInterface              @"/DiDiAlarm/loginApp.do?p=findCityArea"

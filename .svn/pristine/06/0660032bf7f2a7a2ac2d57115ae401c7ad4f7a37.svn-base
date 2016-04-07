@@ -89,19 +89,18 @@
                 if ([self.detailModel.messageType isEqualToString:@"voiceAlarm"]) {
                     //语音
                     LeftTitleButton *button = [LeftTitleButton buttonWithType:UIButtonTypeCustom];
-                    [button setFrame:CGRectMake(96, 10, 100, 30)];
+                    [button setFrame:CGRectMake(Screen_Width - 12 - 100, 10, 100, 30)];
                     button.shouldUseLeftTitle = YES;
                     [button setImage:[UIImage imageNamed:@"record_voice"] forState:UIControlStateNormal];
                     [button setTitleColor:[[UIColor blackColor] colorWithAlphaComponent:0.4] forState:UIControlStateNormal];
                     button.titleLabel.font = [UIFont systemFontOfSize:16.0f];
                     [button addTarget:self action:@selector(audioPlay) forControlEvents:UIControlEventTouchUpInside];
                     [cell.contentView addSubview:button];
-//                    NSString *audioPath = self.detailModel.message;
-                    [button setTitle:self.model.audioLength forState:UIControlStateNormal];
-//                    NSURL *audioURL = [NSURL URLWithString:audioPath];
-//                    [audioURL timeIntervalForMediaWithCompeletion:^(NSTimeInterval mediaDuation) {
-//                        [button setTitle:[NSString stringWithFormat:@"%.0lf\"",mediaDuation] forState:UIControlStateNormal];
-//                    }];
+                    NSString *audioPath = self.detailModel.message;
+                    NSURL *audioURL = [NSURL URLWithString:audioPath];
+                    [audioURL timeIntervalForMediaWithCompeletion:^(NSTimeInterval mediaDuation) {
+                        [button setTitle:[NSString stringWithFormat:@"%.0lf\"",mediaDuation] forState:UIControlStateNormal];
+                    }];
                 }
                 if ([self.detailModel.messageType isEqualToString:@"imgAlarm"]) {
                     //图文报警

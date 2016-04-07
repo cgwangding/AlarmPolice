@@ -91,7 +91,7 @@
 - (void)restartTimer
 {
     [self.waveTimer setFireDate:[NSDate date]];
-    self.currentSec = 0;
+    self.currentSec = -1;
 }
 
 - (void)invalidateTimer

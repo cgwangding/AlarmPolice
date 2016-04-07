@@ -243,8 +243,7 @@
     
     self.sexLabel.text = sexStr;
     self.phoneNumLabel.text = [self formatPhoneNum:data.telephone];
-//    self.personalIdLabel.text = [self formatCardId:data.idCard];
-    self.personalIdLabel.text = data.idCard;
+    self.personalIdLabel.text = [self formatCardId:data.idCard];
     self.addressLabel.text = data.address;
     NSString *headerURL = [data.headerURL  stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@","]];
     [self.headerButton sd_setBackgroundImageWithURL:[NSURL URLWithString:headerURL] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"header_default_upload"]];
